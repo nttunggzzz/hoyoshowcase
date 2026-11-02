@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <title>Phiên & dữ liệu riêng · HoyoShowcase</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="skip" href="#content">Đi đến nội dung</a>
+    <aside class="sidebar">
+      <a class="brand" href="../README.html"
+        ><span>✦</span> HOYO<span class="brand-light">SHOWCASE</span></a
+      >
+      <p class="edition">PROJECT HANDBOOK / 0.7</p>
+      <nav aria-label="Tài liệu">
+        <a href="../README.html">Bắt đầu</a><a href="../docs/index.html">Bản đồ tài liệu</a
+        ><a href="../docs/architecture.html">Kiến trúc</a
+        ><a href="../docs/contributing.html">Làm việc cùng nhau</a
+        ><a href="../docs/data-model.html">Dữ liệu & API</a
+        ><a class="active" aria-current="page" href="../docs/security.html">Phiên & dữ liệu riêng</a
+        ><a href="../docs/troubleshooting.html">Xử lý lỗi</a>
+      </nav>
+      <div class="sidebar-foot">
+        <span>Node 22+ · ES modules</span
+        ><a href="https://github.com/Ponie25/HoyoShowcase">Repository ↗</a>
+      </div>
+    </aside>
+    <main id="content">
+      <header class="page-top">
+        <span>HoyoShowcase / Phiên & dữ liệu riêng</span><span>02.11.2026</span>
+      </header>
+      <p class="eyebrow">HANDBOOK / 04</p>
+      <h1>Phiên & dữ liệu riêng<span>Biết thứ gì nằm ở đâu.</span></h1>
+      <p class="lead">
+        Thiết kế hiện tại dành cho app local. GitHub chứa source và fixture; thông tin đăng nhập và
+        dữ liệu tài khoản thật không thuộc repo.
+      </p>
+      <section id="storage">
+        <h2>Bản đồ lưu trữ</h2>
+        <table>
+          <tr>
+            <th>Dữ liệu</th>
+            <th>Ở đâu</th>
+            <th>Vòng đời</th>
+          </tr>
+          <tr>
+            <td>Password / token / cookie / challenge</td>
+            <td>Context server RAM; password mã hóa cho request login.</td>
+            <td>Reset hoặc TTL phiên 20 phút; không xuất trong snapshot/audit.</td>
+          </tr>
+          <tr>
+            <td>Cookie phiên local</td>
+            <td>Trình duyệt, HttpOnly, SameSite=Strict, riêng port.</td>
+            <td>Tối đa 20 phút; không phải cookie upstream HoYoLAB.</td>
+          </tr>
+          <tr>
+            <td>Device ID web</td>
+            <td>localStorage, UUID không bí mật.</td>
+            <td>Giữ ổn định giữa các lần đăng nhập.</td>
+          </tr>
+          <tr>
+            <td>Theme / nhân vật nổi bật / config preview</td>
+            <td>localStorage, theo UID/server ở phần tương ứng.</td>
+            <td>Giữ trên trình duyệt, không đi vào Git.</td>
+          </tr>
+          <tr>
+            <td>Snapshot game</td>
+            <td>data/battle-chronicle-latest.json.</td>
+            <td>Giữ để mở lại nhanh; lượt complete mới thay bản trước.</td>
+          </tr>
+          <tr>
+            <td>Ảnh PNG / JSON do tải xuống</td>
+            <td>Thư mục Downloads do trình duyệt quản lý.</td>
+            <td>Người dùng tự quản lý và quyết định chia sẻ.</td>
+          </tr>
+        </table>
+        <p>
+          Nút <strong>Kết thúc phiên và xóa RAM</strong> không xóa dữ liệu game đã lưu. Muốn xóa hồ
+          sơ local, dừng app rồi tự xóa file trong data. Muốn giữ nhiều tài khoản, backup file riêng
+          trước khi đồng bộ role khác; app hiện lưu một bản hoàn tất mới nhất.
+        </p>
+      </section>
+      <section id="network">
+        <h2>Ranh giới mạng</h2>
+        <ul>
+          <li>
+            Server bind 127.0.0.1, kiểm tra Host chính xác. POST cần Origin và CSRF đúng phiên.
+          </li>
+          <li>
+            Transport dùng registry endpoint cố định; endpoint collector chỉ đọc dữ liệu game.
+          </li>
+          <li>CAPTCHA chạy trong iframe sandbox và người dùng tự hoàn tất. Không tự gửi OTP.</li>
+          <li>
+            Proxy ảnh chỉ nhận CDN raster đã cho phép, chặn redirect và URL lạ, giới hạn kích
+            thước/cache.
+          </li>
+          <li>
+            Cookie upstream không gửi vào luồng tải ảnh; lỗi/audit không ghi URL có authkey, request
+            body hoặc credential.
+          </li>
+        </ul>
+        <p>
+          Đưa app lên một host dùng chung cần một thiết kế xác thực/lưu trữ khác. Không chỉ đổi bind
+          sang 0.0.0.0 hoặc mở tunnel cho server hiện tại.
+        </p>
+      </section>
+      <section id="git">
+        <h2>Những gì được commit</h2>
+        <p>
+          Source, docs HTML, test giả lập, asset công khai có attribution và lockfile. data/.gitkeep
+          là file duy nhất trong thư mục data được theo dõi. Tệp .env, log, zip, vault, capture và
+          snapshot thật bị bỏ qua. <code>npm run check:private</code> còn kiểm tra file bị force-add
+          và JSON có schema snapshot; đây là guard theo loại file, không phải bộ nhận diện mọi dạng
+          secret.
+        </p>
+        <p>
+          Trước khi đính kèm ảnh vào PR, kiểm tra UID/tên nhân vật/chi tiết tài khoản có phù hợp để
+          chia sẻ không. Khi báo lỗi chỉ cần bước tái hiện, operation, retcode và trạng thái; dùng
+          fixture hoặc bản đã ẩn dữ liệu để tái hiện.
+        </p>
+      </section>
+      <section id="incident">
+        <h2>Nếu vô tình commit credential</h2>
+        <p>
+          Dừng chia sẻ, vô hiệu hóa/đăng xuất credential liên quan tại nhà cung cấp và báo người
+          cùng làm. Xóa ở commit mới không tự xóa khỏi lịch sử Git. Chỉ xử lý lịch sử hoặc
+          force-push sau khi thống nhất để người còn lại không tiếp tục phát tán commit cũ. Không
+          dán credential đó vào issue để minh họa.
+        </p>
+      </section>
+      <footer>
+        <span>HoyoShowcase · Tài liệu trong repo</span
+        ><a href="../README.html#quick-start">Quay về bắt đầu ↑</a>
+      </footer>
+    </main>
+  </body>
+</html>

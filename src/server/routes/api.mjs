@@ -1,0 +1,105 @@
+import * as core from '../hoyolab/client.mjs';
+import * as collector from '../collection/collector.mjs';
+import { showcaseModel } from '../models/showcase.mjs';
+import { HttpError } from '../http.mjs';
+
+/** Session-scoped operations. HTTP validation belongs to app.mjs. */
+export async function dispatchApi(pathname, input, c, { publishSnapshot, onPersistenceError }) {
+  let result;
+  switch (pathname) {
+    case '/api/showcase':
+      result = await core.showcase(c, String(input.uid));
+      break;
+    case '/api/login': {
+      const account = input.account,
+        password = input.password;
+      delete input.password;
+      delete input.account;
+      result = await core.startLogin(
+        c,
+        account,
+        password,
+        input.profile || 'sdk',
+        input.deviceId ?? null,
+      );
+      break;
+    }
+    case '/api/send-otp':
+      result = await core.sendOtp(c);
+      break;
+    case '/api/otp':
+      result = await core.submitOtp(c, String(input.code));
+      delete input.code;
+      break;
+    case '/api/captcha':
+      result = await core.submitCaptcha(c, input.validation);
+      break;
+    case '/api/refresh-captcha':
+      result = await core.refreshCaptcha(c);
+      break;
+    case '/api/exchange':
+      result = await core.exchange(c);
+      break;
+    case '/api/cookies':
+      result = core.importCookies(c, input.cookies);
+      delete input.cookies;
+      break;
+    case '/api/roles':
+      result = await core.getRoles(c, input.route);
+      break;
+    case '/api/select':
+      result = core.selectRole(c, String(input.uid), String(input.server));
+      break;
+    case '/api/chronicle':
+      result = await core.chronicle(c, !!input.detail);
+      break;
+    case '/api/collector/start':
+      result = { ok: true, collection: collector.startCollection(c) };
+      c.collection.done
+        .then((snapshot) => {
+          if (snapshot.state === 'complete') return publishSnapshot(snapshot);
+        })
+        .catch(onPersistenceError);
+      break;
+    case '/api/collector/status':
+      result = { ok: true, collection: collector.collectionStatus(c) };
+      break;
+    case '/api/collector/view':
+      result = { ok: true, view: showcaseModel(c.collection?.snapshot) };
+      break;
+    case '/api/collector/export':
+      result = { ok: true, snapshot: collector.exportCollection(c) };
+      break;
+    case '/api/collector/cancel':
+      result = { ok: true, collection: collector.cancelCollection(c) };
+      break;
+    case '/api/authkey':
+      result = await core.fetchAuthkey(c);
+      break;
+    case '/api/import-authkey':
+      result = core.importAuthkey(c, input.value, String(input.uid), String(input.server));
+      delete input.value;
+      break;
+    case '/api/sync':
+      result = await core.syncWishes(c, String(input.banner), Number(input.maxPages));
+      break;
+    case '/api/import-backup':
+      result = core.importArchive(c, input.backup);
+      break;
+    case '/api/backup':
+      result = { backup: c.archive };
+      break;
+    case '/api/evidence':
+      result = { format: 'genshin-insights-evidence-v1', events: c.transport.audit };
+      break;
+    case '/api/reset':
+      core.resetCredentials(c);
+      c.transport.audit = [];
+      result = { ok: true, cleared: true };
+      break;
+    default:
+      throw new HttpError(404, 'Operation không được hỗ trợ.');
+  }
+
+  return result;
+}

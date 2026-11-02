@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="vi">
+  <meta charset="utf-8" /><meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  /><title>Genshin · thử đường dữ liệu</title
+  ><link rel="stylesheet" href="/css/research.css" />
+  <script src="/js/research.js" defer></script>
+  <main>
+    <p class="eyebrow">GENSHIN GLOBAL · POC LOCAL CHỈ ĐỌC</p>
+    <h1>Chứng minh đường dữ liệu</h1>
+    <p>
+      Nhập thông tin ngay trên máy này. Credential giữ trong RAM tối đa 20 phút mỗi phiên, không ghi
+      vào tệp hoặc trả trong báo cáo. Backup chỉ chứa lịch sử cầu nguyện. CAPTCHA được người dùng tự
+      giải qua Geetest.
+    </p>
+    <p id="session" class="muted"></p>
+    <section>
+      <h2>1 · Showcase công khai</h2>
+      <p>Chỉ trả nhân vật trong showcase được mở. UID mẫu dưới đây lấy từ tài liệu Enka.</p>
+      <form id="showcase">
+        <label
+          >UID Genshin <input name="uid" value="618285856" inputmode="numeric" required /></label
+        ><button>Đọc Enka</button>
+      </form>
+    </section>
+    <section>
+      <h2>2 · Chọn nguồn đăng nhập để kiểm chứng</h2>
+      <p>
+        SDK: <code>c77bxgx7ljb4</code> · HoYoLAB: <code>c9oqaq3s3gu8</code>. Mỗi nguồn có bằng chứng
+        riêng. Đăng nhập và đổi credential là hai kết quả riêng.
+      </p>
+      <form id="login" autocomplete="off">
+        <label
+          >Nguồn đăng nhập
+          <select name="profile">
+            <option value="sdk">SDK Global</option>
+            <option value="hoyolab">HoYoLAB app · thử độc lập</option>
+          </select></label
+        ><label
+          >Tài khoản
+          <input name="account" type="text" autocomplete="off" required maxlength="240" /></label
+        ><label
+          >Mật khẩu
+          <input name="password" type="password" autocomplete="new-password" required /></label
+        ><button>Đăng nhập</button>
+      </form>
+      <div id="otp-box" hidden>
+        <p id="otp-note"></p>
+        <button type="button" data-action="send-otp">Gửi OTP email</button>
+        <form id="otp" autocomplete="off">
+          <label
+            >OTP 6 số
+            <input
+              name="code"
+              type="password"
+              inputmode="numeric"
+              pattern="[0-9]{6}"
+              autocomplete="off"
+              required /></label
+          ><button>Xác minh OTP</button>
+        </form>
+      </div>
+      <div id="captcha-box" hidden>
+        <p>Tự hoàn tất CAPTCHA. Khung Geetest được sandbox, chỉ nhận challenge.</p>
+        <button type="button" data-action="refresh-captcha">Yêu cầu CAPTCHA mới</button
+        ><iframe
+          id="captcha-frame"
+          title="Geetest CAPTCHA"
+          sandbox="allow-scripts"
+          src="about:blank"
+        ></iframe>
+      </div>
+      <button type="button" data-action="exchange">Thử token LOGIN → cookie</button>
+    </section>
+    <details>
+      <summary>Lối vào độc lập: cookie HoYoLAB hoặc authkey</summary>
+      <p>
+        Dùng để kiểm tra phần downstream khi SDK chưa đổi được credential. Không gửi những giá trị
+        này vào chat. Chuyển lối vào sẽ xóa credential và dữ liệu đang giữ trong RAM.
+      </p>
+      <form id="cookies" autocomplete="off">
+        <label
+          >Cookie header hoặc JSON cookie
+          <input name="cookies" type="password" autocomplete="new-password" required /></label
+        ><button>Nạp cookie trong RAM</button>
+      </form>
+      <form id="authkey-import" autocomplete="off">
+        <label
+          >Authkey hoặc link lịch sử
+          <input name="value" type="password" autocomplete="new-password" required /></label
+        ><label>UID Genshin <input name="uid" inputmode="numeric" required /></label
+        ><label
+          >Server
+          <select name="server">
+            <option value="os_asia">Asia</option>
+            <option value="os_usa">America</option>
+            <option value="os_euro">Europe</option>
+            <option value="os_cht">TW/HK/MO</option>
+          </select></label
+        ><button>Nạp authkey trong RAM</button>
+      </form>
+    </details>
+    <section>
+      <h2>3 · Xác định game role</h2>
+      <div class="actions">
+        <button type="button" data-action="roles-account">Lấy role bằng cookie_token_v2</button
+        ><button type="button" data-action="roles-lab">Lấy role bằng HoYoLAB cookie</button>
+      </div>
+      <form id="role">
+        <label
+          >Role do API trả về
+          <select id="roles" name="role" required>
+            <option value="">Chưa có role</option>
+          </select></label
+        ><button>Chọn UID / server</button>
+      </form>
+    </section>
+    <section>
+      <h2>4 · Đọc dữ liệu tài khoản</h2>
+      <div class="actions">
+        <button type="button" data-action="chronicle">Đọc thống kê + danh sách nhân vật</button
+        ><button type="button" data-action="detail">Đọc thêm chi tiết 3 nhân vật</button
+        ><button type="button" data-action="authkey">Tạo authkey gacha từ cookie</button>
+      </div>
+      <p>
+        Không tự bật cài đặt công khai. Nếu Battle Chronicle yêu cầu xác minh bổ sung, PoC dừng và
+        ghi mã lỗi.
+      </p>
+    </section>
+    <section>
+      <h2>5 · Đọc / đồng bộ lịch sử cầu nguyện</h2>
+      <form id="sync">
+        <label
+          >Banner
+          <select name="banner">
+            <option value="301">301 · Nhân vật sự kiện</option>
+            <option value="400">400 · Nhân vật sự kiện 2</option>
+            <option value="302">302 · Vũ khí</option>
+            <option value="200">200 · Thường</option>
+            <option value="100">100 · Tân thủ</option>
+            <option value="500">500 · Sử Ký</option>
+          </select></label
+        ><label
+          >Giới hạn trang (20 dòng/trang)
+          <input name="maxPages" type="number" value="3" min="1" max="20" required /></label
+        ><button>Đồng bộ banner này</button>
+      </form>
+      <p>
+        Chạm giới hạn trang → bấm tiếp để đọc trang sau. Dữ liệu thêm vào RAM, loại trùng bằng ID
+        dạng chuỗi. Chỉ đánh dấu quét xong khi API trả trang rỗng hoặc chạm vùng đã quét đầy đủ
+        trước đó. Không suy ra lịch sử trọn đời từ một trang rỗng.
+      </p>
+      <label
+        >Khôi phục backup PoC cho UID đã chọn
+        <input id="backup-file" type="file" accept="application/json,.json"
+      /></label>
+      <div class="actions">
+        <button type="button" data-action="backup">Tải backup cầu nguyện</button
+        ><button type="button" data-action="evidence">Tải bằng chứng đã lọc bí mật</button
+        ><button type="button" data-action="reset">Xóa credential và dữ liệu RAM</button>
+      </div>
+    </section>
+    <section aria-live="polite">
+      <h2>Kết quả của bước vừa chạy</h2>
+      <p id="activity">Sẵn sàng.</p>
+      <pre id="result">Chưa thực hiện.</pre>
+    </section>
+    <p class="muted">
+      Enka là bên thứ ba. API HoYoverse trong PoC được đối chiếu từ mã thư viện cộng đồng và có thể
+      thay đổi. Chưa bao gồm banner/endpoint mở rộng ngoài các loại liệt kê.
+    </p>
+  </main>
+</html>

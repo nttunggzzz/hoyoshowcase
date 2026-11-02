@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <title>Bắt đầu · HoyoShowcase</title>
+    <link rel="stylesheet" href="docs/styles.css" />
+  </head>
+  <body>
+    <a class="skip" href="#content">Đi đến nội dung</a>
+    <aside class="sidebar">
+      <a class="brand" href="README.html"
+        ><span>✦</span> HOYO<span class="brand-light">SHOWCASE</span></a
+      >
+      <p class="edition">PROJECT HANDBOOK / 0.7</p>
+      <nav aria-label="Tài liệu">
+        <a class="active" aria-current="page" href="README.html">Bắt đầu</a
+        ><a href="docs/index.html">Bản đồ tài liệu</a><a href="docs/architecture.html">Kiến trúc</a
+        ><a href="docs/contributing.html">Làm việc cùng nhau</a
+        ><a href="docs/data-model.html">Dữ liệu & API</a
+        ><a href="docs/security.html">Phiên & dữ liệu riêng</a
+        ><a href="docs/troubleshooting.html">Xử lý lỗi</a>
+      </nav>
+      <div class="sidebar-foot">
+        <span>Node 22+ · ES modules</span
+        ><a href="https://github.com/Ponie25/HoyoShowcase">Repository ↗</a>
+      </div>
+    </aside>
+    <main id="content">
+      <header class="page-top"><span>HoyoShowcase / Bắt đầu</span><span>02.11.2026</span></header>
+      <p class="eyebrow">GENSHIN · BATTLE CHRONICLE · LOCAL FIRST</p>
+      <h1>HoyoShowcase<span>Hành trình thành một khung hình.</span></h1>
+      <p class="lead">
+        Thu thập dữ liệu Battle Chronicle, xem nhân vật và trang bị, rồi tự thiết kế ảnh showcase.
+        Bộ source này được tổ chức để hai người có thể phát triển cùng nhau.
+      </p>
+      <div class="hero-links">
+        <a class="primary" href="#quick-start">Chạy trong vài phút ↓</a
+        ><a href="docs/architecture.html">Đọc kiến trúc ↗</a>
+      </div>
+      <div class="facts">
+        <div><strong>Node.js 22+</strong><span>ES modules, không cần build</span></div>
+        <div>
+          <strong>0 runtime dependencies</strong><span>Prettier chỉ dùng khi phát triển</span>
+        </div>
+        <div>
+          <strong>Local trên máy</strong><span>Credential ở RAM, dữ liệu game ở data/</span>
+        </div>
+      </div>
+      <section id="quick-start">
+        <p class="eyebrow">01 / KHỞI ĐỘNG</p>
+        <h2>Clone, kiểm tra, rồi mở tài khoản.</h2>
+        <pre><code>git clone https://github.com/Ponie25/HoyoShowcase.git
+cd HoyoShowcase
+npm ci
+npm start</code></pre>
+        <p>
+          Mở <a href="http://127.0.0.1:47932/">http://127.0.0.1:47932/</a>. Bấm
+          <strong>Đồng bộ dữ liệu</strong>, đăng nhập HoYoLAB Web trong form local, chọn UID nếu có
+          nhiều role. Tự hoàn tất CAPTCHA nếu xuất hiện. OTP chỉ hiện khi HoYoLAB yêu cầu xác minh
+          bổ sung; ứng dụng không tự gửi mã.
+        </p>
+        <p>
+          Lượt thu thập hoàn tất sẽ lưu dữ liệu game vào
+          <code>data/battle-chronicle-latest.json</code>. Mở lại app sẽ đọc bản đã lưu trước; đồng
+          bộ dữ liệu mới vẫn phụ thuộc máy chủ.
+        </p>
+        <div class="note">
+          <strong>Mới clone sẽ chưa có tài khoản.</strong> Dữ liệu thật của người phát triển không
+          nằm trong Git. Có thể dùng <code>npm run demo</code> để thử luồng bằng dữ liệu giả lập ở
+          port 47933, không cần đăng nhập HoYoLAB.
+        </div>
+      </section>
+      <section id="features">
+        <p class="eyebrow">02 / TRONG ỨNG DỤNG</p>
+        <h2>Một bộ sưu tập, nhiều cách trình bày.</h2>
+        <div class="feature-grid">
+          <article>
+            <span>01</span>
+            <h3>Đồng bộ Chronicle</h3>
+            <p>
+              Danh sách và chi tiết nhân vật, trang bị đang gắn, thế giới, La Hoàn, Nhà Hát, U Cảnh,
+              sự kiện, daily notes và Thất Thánh theo các mục API còn cung cấp.
+            </p>
+          </article>
+          <article>
+            <span>02</span>
+            <h3>Gallery & build</h3>
+            <p>
+              Lọc nguyên tố, tìm kiếm, sắp xếp, xem chi tiết trang bị. Giữ icon, tranh và nền độ
+              hiếm từ game; nhấn mạnh 5★ C6.
+            </p>
+          </article>
+          <article>
+            <span>03</span>
+            <h3>Preview account</h3>
+            <p>
+              Chọn tổng số hiện, ô mỗi hàng, số hàng, lọc độ hiếm, hồ sơ và từng thông tin
+              Chronicle. Thành tựu/ngày hoạt động mặc định tắt.
+            </p>
+          </article>
+          <article>
+            <span>04</span>
+            <h3>Một PNG hoàn chỉnh</h3>
+            <p>
+              Ghép tổng quan, khám phá và tối đa 6 build. Chọn từng chỉ số hoặc preset DPS/Hỗ
+              trợ/Tinh thông; xuất 1200–3200 px.
+            </p>
+          </article>
+        </div>
+        <p>
+          Vũ khí và thánh di vật là các bản <strong>đang trang bị trên nhân vật</strong>; chưa có
+          API kho túi đồ độc lập được xác nhận. App không khôi phục lịch sử mà API đã loại bỏ và
+          không tự bật quyền công khai.
+          <a href="docs/data-model.html#coverage">Xem phạm vi và trạng thái dữ liệu.</a>
+        </p>
+      </section>
+      <section id="commands">
+        <p class="eyebrow">03 / CÔNG CỤ PHÁT TRIỂN</p>
+        <h2>Các lệnh dùng hàng ngày.</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Lệnh</th>
+              <th>Mục đích</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>npm start</code></td>
+              <td>Chạy app thật, mặc định port 47932.</td>
+            </tr>
+            <tr>
+              <td><code>npm run dev</code></td>
+              <td>
+                Node watch; server khởi động lại khi source server đổi, phiên RAM sẽ mất. Frontend
+                cần tải lại trang.
+              </td>
+            </tr>
+            <tr>
+              <td><code>npm run demo</code></td>
+              <td>
+                Server với fixture giả lập, không gọi API tài khoản thật; mặc định port 47933.
+              </td>
+            </tr>
+            <tr>
+              <td><code>npm test</code></td>
+              <td>Kiểm thử bằng fixture, không cần cookie/password.</td>
+            </tr>
+            <tr>
+              <td><code>npm run format</code></td>
+              <td>Chuẩn hóa JS, CSS, HTML, Markdown và YAML.</td>
+            </tr>
+            <tr>
+              <td><code>npm run check</code></td>
+              <td>Định dạng, cú pháp, link tài liệu, tệp riêng tư và test.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+      <section id="configuration">
+        <p class="eyebrow">04 / CẤU HÌNH</p>
+        <h2>Port và chỗ lưu dữ liệu.</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Biến môi trường</th>
+              <th>Mặc định</th>
+              <th>Ý nghĩa</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>HOYO_PORT</code></td>
+              <td>47932 / demo: 47933</td>
+              <td>Port loopback, từ 1024 đến 65535.</td>
+            </tr>
+            <tr>
+              <td><code>HOYO_DATA_DIR</code></td>
+              <td><code>&lt;repo&gt;/data</code></td>
+              <td>Thư mục lưu bản Chronicle; không dùng để lưu credential.</td>
+            </tr>
+            <tr>
+              <td><code>GENSHIN_COLLECTOR_PORT</code></td>
+              <td>Không đặt</td>
+              <td>Tên cũ, được hỗ trợ nếu HOYO_PORT chưa đặt; chỉ cho app thật.</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>Ví dụ PowerShell:</p>
+        <pre><code>$env:HOYO_PORT = '47934'
+$env:HOYO_DATA_DIR = 'C:/HoyoShowcase-data'
+npm start</code></pre>
+        <p>
+          App không tự nạp tệp <code>.env</code>. Nếu chọn thư mục dữ liệu ngoài repo, tự quản lý
+          backup tại đó. Không chạy hai app thật cùng ghi một thư mục dữ liệu. Server chỉ bind
+          <code>127.0.0.1</code>; đây chưa phải ứng dụng nhiều người dùng để đưa thẳng lên hosting.
+        </p>
+      </section>
+      <section id="team">
+        <p class="eyebrow">05 / HAI NGƯỜI CÙNG LÀM</p>
+        <h2>Bắt đầu từ ranh giới rõ ràng.</h2>
+        <div class="split">
+          <article>
+            <h3>Server & dữ liệu</h3>
+            <p>
+              <code>src/server/</code><br />Phiên đăng nhập, HTTP/API, thu thập, model, ảnh và lưu
+              snapshot.
+            </p>
+          </article>
+          <article>
+            <h3>Giao diện & xuất ảnh</h3>
+            <p>
+              <code>public/</code><br />Gallery, tương tác, form tùy chỉnh, canvas, CSS và asset
+              game.
+            </p>
+          </article>
+        </div>
+        <p>
+          <code>src/shared/preview-config.mjs</code> là phần dùng chung. Thống nhất trước khi đổi
+          schema, sự kiện hoặc config; mở PR nhỏ và để người còn lại review.
+          <a href="docs/contributing.html">Quy trình làm việc đầy đủ →</a>
+        </p>
+      </section>
+      <section id="credits">
+        <p class="eyebrow">06 / NGUỒN</p>
+        <h2>Giữ nguồn gốc cùng mã nguồn.</h2>
+        <p>
+          Đây là project cộng đồng, không phải ứng dụng chính thức của HoYoverse. Asset game giữ
+          quyền của chủ sở hữu. Font Outfit đi kèm OFL; các phần thích nghi giao thức giữ thông báo
+          bên thứ ba tại <a href="THIRD_PARTY_NOTICES.md">THIRD_PARTY_NOTICES.md</a>. Repo chưa chọn
+          giấy phép riêng cho phần mã gốc của project.
+        </p>
+        <p>
+          <a href="docs/assets/game-asset-sources.json">Danh sách nguồn asset</a> ·
+          <a href="https://github.com/Ponie25/HoyoShowcase">GitHub repository ↗</a>
+        </p>
+      </section>
+      <footer>
+        <span>HoyoShowcase · Tài liệu trong repo</span
+        ><a href="README.html#quick-start">Quay về bắt đầu ↑</a>
+      </footer>
+    </main>
+  </body>
+</html>

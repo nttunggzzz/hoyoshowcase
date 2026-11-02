@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <title>Bản đồ tài liệu · HoyoShowcase</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="skip" href="#content">Đi đến nội dung</a>
+    <aside class="sidebar">
+      <a class="brand" href="../README.html"
+        ><span>✦</span> HOYO<span class="brand-light">SHOWCASE</span></a
+      >
+      <p class="edition">PROJECT HANDBOOK / 0.7</p>
+      <nav aria-label="Tài liệu">
+        <a href="../README.html">Bắt đầu</a
+        ><a class="active" aria-current="page" href="../docs/index.html">Bản đồ tài liệu</a
+        ><a href="../docs/architecture.html">Kiến trúc</a
+        ><a href="../docs/contributing.html">Làm việc cùng nhau</a
+        ><a href="../docs/data-model.html">Dữ liệu & API</a
+        ><a href="../docs/security.html">Phiên & dữ liệu riêng</a
+        ><a href="../docs/troubleshooting.html">Xử lý lỗi</a>
+      </nav>
+      <div class="sidebar-foot">
+        <span>Node 22+ · ES modules</span
+        ><a href="https://github.com/Ponie25/HoyoShowcase">Repository ↗</a>
+      </div>
+    </aside>
+    <main id="content">
+      <header class="page-top">
+        <span>HoyoShowcase / Bản đồ tài liệu</span><span>02.11.2026</span>
+      </header>
+      <p class="eyebrow">HANDBOOK / 00</p>
+      <h1>Bản đồ tài liệu<span>Đọc đúng phần, sửa đúng chỗ.</span></h1>
+      <p class="lead">
+        Tài liệu HTML đọc được trực tiếp từ thư mục hoặc qua server local. Không cần dịch vụ tài
+        liệu hay bước build.
+      </p>
+      <div class="doc-list">
+        <a href="../README.html"
+          ><strong>01 · Bắt đầu</strong
+          ><span>Cài đặt, lệnh chạy, tính năng và biến môi trường.</span></a
+        ><a href="architecture.html"
+          ><strong>02 · Kiến trúc</strong
+          ><span>Cấu trúc file, ranh giới và luồng đồng bộ/xuất ảnh.</span></a
+        ><a href="contributing.html"
+          ><strong>03 · Làm việc cùng nhau</strong
+          ><span>Chia việc, nhánh, PR, review và kiểm tra trước khi merge.</span></a
+        ><a href="data-model.html"
+          ><strong>04 · Dữ liệu & API</strong
+          ><span>Snapshot, view model, trạng thái, endpoint local và sự kiện.</span></a
+        ><a href="security.html"
+          ><strong>05 · Phiên & dữ liệu riêng</strong
+          ><span>RAM, localStorage, thư mục data và ranh giới mạng.</span></a
+        ><a href="troubleshooting.html"
+          ><strong>06 · Xử lý lỗi</strong
+          ><span>Port, CAPTCHA, OTP, phiên, ảnh, data và Git.</span></a
+        >
+      </div>
+      <section>
+        <h2>Điểm vào source</h2>
+        <table>
+          <tr>
+            <th>Việc muốn làm</th>
+            <th>Bắt đầu ở</th>
+          </tr>
+          <tr>
+            <td>Thêm một mục Chronicle</td>
+            <td>
+              <code>src/server/collection/collector.mjs</code>, <code>src/server/models/</code>
+            </td>
+          </tr>
+          <tr>
+            <td>Đổi tùy chọn và bố cục ảnh</td>
+            <td><code>src/shared/preview-config.mjs</code>, <code>public/js/preview/</code></td>
+          </tr>
+          <tr>
+            <td>Đổi đăng nhập</td>
+            <td>
+              <code>src/server/hoyolab/client.mjs</code>,
+              <code>public/js/collection-controller.js</code>
+            </td>
+          </tr>
+          <tr>
+            <td>Đổi giao diện gallery</td>
+            <td><code>public/js/showcase.js</code>, <code>public/css/showcase.css</code></td>
+          </tr>
+        </table>
+      </section>
+      <footer>
+        <span>HoyoShowcase · Tài liệu trong repo</span
+        ><a href="../README.html#quick-start">Quay về bắt đầu ↑</a>
+      </footer>
+    </main>
+  </body>
+</html>

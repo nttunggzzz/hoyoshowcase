@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="vi">
+  <meta charset="utf-8" /><title>CAPTCHA</title
+  ><style>
+    body {
+      font: 15px system-ui;
+      padding: 18px;
+      color: #263548;
+    }
+    button {
+      padding: 9px 14px;
+    }
+  </style>
+  <p id="note">Đang đợi challenge từ trang local…</p>
+  <div id="widget"></div>
+  <button id="retry" hidden>Thử lại CAPTCHA này</button>
+  <script>
+    let challenge = null,
+      loading = false;
+    const note = document.getElementById('note'),
+      retry = document.getElementById('retry');
+    function fail(message) {
+      loading = false;
+      note.textContent = message;
+      retry.hidden = false;
+    }
+    async function load() {
+      if (loading || !challenge) return;
+      loading = true;
+      retry.hidden = true;
+      note.textContent = 'Đang tải script Geetest…';
+      try {
+        const v4 = challenge.version === 4;
+        if (typeof (v4 ? window.initGeetest4 : window.initGeetest) !== 'function')
+          await new Promise((resolve, reject) => {
+            const s = document.createElement('script');
+            const timer = setTimeout(() => {
+              s.remove();
+              reject(Error());
+            }, 12000);
+            s.src = v4
+              ? 'https://static.geetest.com/v4/gt4.js'
+              : 'https://static.geetest.com/static/js/gt.0.5.2.js';
+            s.onload = () => {
+              clearTimeout(timer);
+              resolve();
+            };
+            s.onerror = () => {
+              clearTimeout(timer);
+              reject(Error());
+            };
+            document.head.append(s);
+          });
+        const init = v4 ? window.initGeetest4 : window.initGeetest;
+        if (typeof init !== 'function') throw Error();
+        note.textContent = 'Đang khởi tạo CAPTCHA Global…';
+        const timer = setTimeout(
+          () => fail('Geetest chưa sẵn sàng sau 15 giây. Bấm thử lại CAPTCHA này.'),
+          15000,
+        );
+        const config = v4
+          ? {
+              protocol: 'https://',
+              captchaId: challenge.captcha_id,
+              riskType: challenge.risk_type,
+              userInfo: JSON.stringify({ session_id: challenge.session_id }),
+              apiServers: ['gcaptcha4.captchami.com'],
+              product: 'bind',
+              language: 'eng',
+              onError: () => {
+                clearTimeout(timer);
+                fail(
+                  'Không khởi tạo được Geetest v4 qua HTTPS. Bấm “Yêu cầu CAPTCHA mới” ở trang local.',
+                );
+              },
+            }
+          : {
+              protocol: 'https://',
+              gt: challenge.gt,
+              challenge: challenge.challenge,
+              new_captcha: true,
+              product: 'bind',
+              api_server: 'api-na.geetest.com',
+              lang: 'eng',
+            };
+        init(config, (g) => {
+          if (!v4) g.appendTo('#widget');
+          g.onReady(() => {
+            clearTimeout(timer);
+            loading = false;
+            note.textContent = 'Hoàn tất xác minh trong hộp CAPTCHA.';
+            v4 ? g.showCaptcha() : g.verify();
+          });
+          g.onSuccess(() =>
+            parent.postMessage({ kind: 'captcha-result', validation: g.getValidate() }, '*'),
+          );
+          g.onError(() => {
+            clearTimeout(timer);
+            loading = false;
+            retry.hidden = true;
+            note.textContent =
+              'Geetest từ chối challenge hoặc tải widget lỗi. Bấm “Yêu cầu CAPTCHA mới” ở trang local; giữ nguyên lượt đăng nhập.';
+          });
+        });
+      } catch {
+        fail('Không tải được script Geetest. Bấm thử lại hoặc kiểm tra chặn kết nối.');
+      }
+    }
+    window.addEventListener('message', (e) => {
+      if (e.source !== parent || e.data?.kind !== 'challenge' || challenge) return;
+      const c = e.data.challenge;
+      if (c?.version === 4) {
+        if (typeof c.captcha_id !== 'string' || typeof c.session_id !== 'string') return;
+        challenge = {
+          version: 4,
+          captcha_id: c.captcha_id,
+          risk_type: c.risk_type,
+          session_id: c.session_id,
+        };
+      } else {
+        if (typeof c?.gt !== 'string' || typeof c?.challenge !== 'string') return;
+        challenge = { gt: c.gt, challenge: c.challenge };
+      }
+      load();
+    });
+    retry.addEventListener('click', load);
+    parent.postMessage({ kind: 'captcha-ready' }, '*');
+    setTimeout(() => {
+      if (!challenge)
+        fail('Khung chưa nhận được challenge. Cần tải lại khung CAPTCHA từ trang local.');
+    }, 5000);
+  </script>
+</html>

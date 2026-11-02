@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <title>Làm việc cùng nhau · HoyoShowcase</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="skip" href="#content">Đi đến nội dung</a>
+    <aside class="sidebar">
+      <a class="brand" href="../README.html"
+        ><span>✦</span> HOYO<span class="brand-light">SHOWCASE</span></a
+      >
+      <p class="edition">PROJECT HANDBOOK / 0.7</p>
+      <nav aria-label="Tài liệu">
+        <a href="../README.html">Bắt đầu</a><a href="../docs/index.html">Bản đồ tài liệu</a
+        ><a href="../docs/architecture.html">Kiến trúc</a
+        ><a class="active" aria-current="page" href="../docs/contributing.html"
+          >Làm việc cùng nhau</a
+        ><a href="../docs/data-model.html">Dữ liệu & API</a
+        ><a href="../docs/security.html">Phiên & dữ liệu riêng</a
+        ><a href="../docs/troubleshooting.html">Xử lý lỗi</a>
+      </nav>
+      <div class="sidebar-foot">
+        <span>Node 22+ · ES modules</span
+        ><a href="https://github.com/Ponie25/HoyoShowcase">Repository ↗</a>
+      </div>
+    </aside>
+    <main id="content">
+      <header class="page-top">
+        <span>HoyoShowcase / Làm việc cùng nhau</span><span>02.11.2026</span>
+      </header>
+      <p class="eyebrow">HANDBOOK / 02</p>
+      <h1>Làm việc cùng nhau<span>Hai người, một nhánh main ổn định.</span></h1>
+      <p class="lead">
+        Mục tiêu là mỗi PR nhỏ, dễ đọc và có bằng chứng kiểm tra. Không cần áp dụng quy trình nặng
+        để cùng sửa một project nhỏ.
+      </p>
+      <section id="first-day">
+        <h2>Ngày đầu của người cùng làm</h2>
+        <ol>
+          <li>Clone repo, chạy <code>npm ci</code> và <code>npm run check</code>.</li>
+          <li>
+            Đọc <a href="../README.html">README HTML</a>,
+            <a href="architecture.html">kiến trúc</a> và
+            <a href="data-model.html">hợp đồng dữ liệu</a>.
+          </li>
+          <li>
+            Dùng <code>npm run demo</code> để xem flow; dùng tài khoản của chính mình khi cần kiểm
+            tra dữ liệu thật.
+          </li>
+          <li>
+            Tạo nhánh và thống nhất khu vực source sẽ sửa. Không gửi credential qua issue, PR hoặc
+            chat.
+          </li>
+        </ol>
+      </section>
+      <section id="split">
+        <h2>Chia việc để giảm conflict</h2>
+        <table>
+          <tr>
+            <th>Luồng công việc</th>
+            <th>File chính</th>
+            <th>Điểm cần báo nhau</th>
+          </tr>
+          <tr>
+            <td>Server / collector</td>
+            <td><code>src/server</code>, test collector/auth/server</td>
+            <td>Schema, trạng thái mới, endpoint local, field model.</td>
+          </tr>
+          <tr>
+            <td>UI / showcase</td>
+            <td><code>public/js/showcase.js</code>, HTML, CSS</td>
+            <td>ID DOM mà collection-controller hoặc preview đang dùng.</td>
+          </tr>
+          <tr>
+            <td>Preview / canvas</td>
+            <td><code>public/js/preview</code>, <code>src/shared/preview-config.mjs</code></td>
+            <td>Config mới, version localStorage, kích thước PNG và field nhân vật.</td>
+          </tr>
+        </table>
+        <p>
+          Đừng vừa đổi tên hàng loạt vừa sửa hành vi trong một PR. Khi phải sửa cùng file, merge PR
+          nhỏ đầu tiên rồi rebase nhánh còn lại. Giữ test giả lập trong cùng PR với thay đổi logic.
+        </p>
+      </section>
+      <section id="branches">
+        <h2>Nhánh và PR</h2>
+        <pre><code>git switch main
+git pull --ff-only
+git switch -c feat/preview-layout
+
+# sửa source, rồi kiểm tra
+npm run check
+git add public src tests docs
+git commit -m "feat: add preview layout option"
+git push -u origin feat/preview-layout</code></pre>
+        <p>
+          Mở PR vào <code>main</code>, mô tả trigger, kết quả trước/sau và cách kiểm tra. Với UI,
+          kèm ảnh desktop/mobile hoặc PNG; ẩn UID nếu không muốn chia sẻ. Người còn lại review rồi
+          mới merge. CI chạy trên Linux/Windows, Node 22/24, không dùng tài khoản thật. Project chỉ
+          thêm workflow kiểm tra, chưa tự đặt branch protection.
+        </p>
+      </section>
+      <section id="definition">
+        <h2>Một thay đổi sẵn sàng review khi nào?</h2>
+        <ul>
+          <li><code>npm run check</code> đạt; không chỉ chạy <code>node --check</code>.</li>
+          <li>
+            Test bao phủ hành vi có ý nghĩa: dữ liệu thiếu, limit, role isolation, lỗi hoặc phân
+            trang nếu bị ảnh hưởng.
+          </li>
+          <li>
+            UI kiểm tra cả khung hẹp và desktop, sáng/tối nếu đổi màu; PNG được tải và xem thật.
+          </li>
+          <li>Tài liệu setup/API/schema được cập nhật khi hành vi đó đổi.</li>
+          <li>
+            <code>git diff --check</code> sạch và danh sách file staged không chứa dữ liệu riêng.
+          </li>
+        </ul>
+      </section>
+      <section id="style">
+        <h2>Quy ước source</h2>
+        <p>
+          Dùng ES modules, tên file kebab-case, 2 dấu cách, LF và Prettier. Giữ runtime không
+          dependency trừ khi đã thống nhất nhu cầu cụ thể. Đặt comment ở lý do hoặc ràng buộc giao
+          thức; tránh diễn giải lại từng dòng code.
+        </p>
+        <p>
+          Form không trực tiếp vẽ canvas; renderer không tự sửa localStorage. Không copy công thức
+          layout vào nhiều file. Field mới từ API nên giữ ở raw snapshot, nhưng chỉ đưa vào view
+          model khi UI cần. Tên trạng thái/schema là hợp đồng; đổi chúng cần bàn với người phụ trách
+          frontend.
+        </p>
+      </section>
+      <section id="testing">
+        <h2>Cách kiểm tra theo thay đổi</h2>
+        <table>
+          <tr>
+            <th>Thay đổi</th>
+            <th>Kiểm tra nên có</th>
+          </tr>
+          <tr>
+            <td>Auth/transport</td>
+            <td>
+              Fixture CAPTCHA/OTP, expired/rate limit, không lộ cookie; không retry đăng nhập tự
+              động.
+            </td>
+          </tr>
+          <tr>
+            <td>Collector</td>
+            <td>Batch, pagination, dữ liệu thiếu, cancel/fatal và quyền sở hữu role.</td>
+          </tr>
+          <tr>
+            <td>Preview</td>
+            <td>
+              Limit, tổng số, kích thước, config cũ, field thiếu; kiểm tra PNG thực tế trong
+              browser.
+            </td>
+          </tr>
+          <tr>
+            <td>Route/lưu file</td>
+            <td>Asset MIME, dữ liệu không bị phục vụ, lỗi file và ghi nguyên tử.</td>
+          </tr>
+          <tr>
+            <td>HTML docs</td>
+            <td>
+              <code>npm run check:docs</code>, mở trang và thử link; chỉnh print/mobile nếu đổi
+              layout.
+            </td>
+          </tr>
+        </table>
+      </section>
+      <footer>
+        <span>HoyoShowcase · Tài liệu trong repo</span
+        ><a href="../README.html#quick-start">Quay về bắt đầu ↑</a>
+      </footer>
+    </main>
+  </body>
+</html>

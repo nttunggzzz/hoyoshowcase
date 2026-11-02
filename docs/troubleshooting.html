@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <title>Xử lý lỗi · HoyoShowcase</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="skip" href="#content">Đi đến nội dung</a>
+    <aside class="sidebar">
+      <a class="brand" href="../README.html"
+        ><span>✦</span> HOYO<span class="brand-light">SHOWCASE</span></a
+      >
+      <p class="edition">PROJECT HANDBOOK / 0.7</p>
+      <nav aria-label="Tài liệu">
+        <a href="../README.html">Bắt đầu</a><a href="../docs/index.html">Bản đồ tài liệu</a
+        ><a href="../docs/architecture.html">Kiến trúc</a
+        ><a href="../docs/contributing.html">Làm việc cùng nhau</a
+        ><a href="../docs/data-model.html">Dữ liệu & API</a
+        ><a href="../docs/security.html">Phiên & dữ liệu riêng</a
+        ><a class="active" aria-current="page" href="../docs/troubleshooting.html">Xử lý lỗi</a>
+      </nav>
+      <div class="sidebar-foot">
+        <span>Node 22+ · ES modules</span
+        ><a href="https://github.com/Ponie25/HoyoShowcase">Repository ↗</a>
+      </div>
+    </aside>
+    <main id="content">
+      <header class="page-top"><span>HoyoShowcase / Xử lý lỗi</span><span>02.11.2026</span></header>
+      <p class="eyebrow">HANDBOOK / 05</p>
+      <h1>Xử lý lỗi<span>Tìm nguyên nhân theo đúng lớp.</span></h1>
+      <p class="lead">
+        Bắt đầu bằng trạng thái hiện trên giao diện, rồi xem module và retcode. Không cần gửi
+        password, OTP, cookie hay file data thật để mô tả lỗi.
+      </p>
+      <section id="runtime">
+        <h2>Chạy local</h2>
+        <details open>
+          <summary>Port 47932 đang bận</summary>
+          <p>
+            Chọn port mới, ví dụ PowerShell <code>$env:HOYO_PORT = '47934'</code>, rồi chạy npm
+            start và mở đúng 127.0.0.1:47934. Không dừng một dịch vụ khác khi chưa biết nó là gì.
+            Dùng 127.0.0.1 thay vì localhost vì Host guard cố định.
+          </p>
+        </details>
+        <details>
+          <summary>npm ci / node không chạy</summary>
+          <p>
+            Kiểm tra node --version từ 22 trở lên và npm trong PATH. Chạy lệnh ở thư mục có
+            package.json. Khi lockfile đổi, chạy npm ci lại. PowerShell chặn npm.ps1 thì có thể dùng
+            npm.cmd với cùng tham số.
+          </p>
+        </details>
+        <details>
+          <summary>Frontend không đổi sau khi sửa</summary>
+          <p>
+            Frontend không có bundler/HMR; tải lại trang. npm run dev chỉ watch server; server
+            restart sẽ xóa phiên RAM. Chạy npm run format và npm run check:source để tìm lỗi cú
+            pháp, rồi kiểm tra console browser và request module có trả MIME JavaScript đúng không.
+          </p>
+        </details>
+        <details>
+          <summary>File data bị lỗi định dạng</summary>
+          <p>
+            App báo rõ và dừng thay vì ghi đè bằng rỗng. Backup file hiện tại trước; kiểm tra
+            JSON/schema hoặc chọn HOYO_DATA_DIR mới rồi đồng bộ lại. Không đưa file lỗi thật lên Git
+            để debug.
+          </p>
+        </details>
+      </section>
+      <section id="auth">
+        <h2>Đăng nhập và thu thập</h2>
+        <details open>
+          <summary>Geetest loading lâu hoặc CAPTCHA không xuất hiện</summary>
+          <p>
+            Kiểm tra mạng có tải được domain Geetest/Captchami không, iframe sandbox và console có
+            lỗi CSP hay script không. Dùng nút Yêu cầu CAPTCHA mới sau thời gian chờ; backend giữ
+            đúng Device ID và bước đang chờ. Không liên tục nạp frame cũ và không dùng lại
+            validation của challenge trước.
+          </p>
+        </details>
+        <details>
+          <summary>Vì sao đôi lúc vẫn có OTP?</summary>
+          <p>
+            Web login là mặc định và không ép gửi OTP. Nếu chính HoYoLAB trả risk challenge, app mới
+            hiện xác minh bổ sung. Chỉ bấm gửi mã khi cần, nhập mã trên form local; không gửi vào
+            chat. Không thể cam kết mọi lần đăng nhập web đều không OTP.
+          </p>
+        </details>
+        <details>
+          <summary>Expired / retcode -100</summary>
+          <p>
+            Phiên local hoặc credential upstream hết hạn. Tải lại và đăng nhập lại. Bản dữ liệu game
+            đã lưu vẫn mở được nếu file tồn tại. Không dùng snapshot cũ như bằng chứng vừa đồng bộ
+            thành công.
+          </p>
+        </details>
+        <details>
+          <summary>Rate limited / 429 / -3006</summary>
+          <p>
+            Collector dừng và tôn trọng Retry-After. Đợi trước khi thử lại; không tăng concurrency,
+            đổi nhiều phiên hoặc bấm liên tục để vượt giới hạn. Giữ bản partial nếu cần xem các mục
+            đã đọc.
+          </p>
+        </details>
+        <details>
+          <summary>Thiếu dữ liệu Nhà Hát / La Hoàn / vũ khí</summary>
+          <p>
+            Kiểm tra trạng thái từng module và quyền xem tài khoản. Chưa đánh hoặc chưa mở khóa có
+            thể trả has_data=false/is_unlock=false. Vũ khí chỉ gồm trang bị trên các nhân vật, không
+            phải toàn bộ túi đồ. Số thẻ danh mục không bằng số thẻ sở hữu.
+          </p>
+        </details>
+      </section>
+      <section id="preview">
+        <h2>Preview và PNG</h2>
+        <details open>
+          <summary>Chọn giới hạn nhưng tổng số không giảm</summary>
+          <p>
+            Giới hạn áp dụng cho số ô đang hiện. Tiêu đề giữ cả tổng tài khoản, ví dụ 8 / 65; có thể
+            tắt số lượng trong tiêu đề. 0 ở giới hạn là không giới hạn, không phải hiện 0 item.
+          </p>
+        </details>
+        <details>
+          <summary>PNG không tải được / ảnh quá lớn</summary>
+          <p>
+            Chọn ít nhất một phần nội dung và một nhân vật nếu bật build. Giảm số hàng, số build
+            hoặc độ phân giải. Giới hạn trước khi vẽ là 32 megapixel và 16000 px chiều cao. Sau khi
+            asset tải xong, nút Tải ảnh PNG mới được bật.
+          </p>
+        </details>
+        <details>
+          <summary>Thiếu icon hoặc ảnh bị lỗi</summary>
+          <p>
+            Kiểm tra request /assets hoặc /media, URL có thuộc allowlist và trả raster hợp lệ không.
+            CDN game có thể đổi hoặc xóa asset; cập nhật game-assets.js và danh sách nguồn cùng
+            nhau. Không thêm proxy tùy ý hoặc gửi cookie vào luồng ảnh để chữa lỗi CORS.
+          </p>
+        </details>
+        <details>
+          <summary>Muốn xóa tùy chỉnh cũ</summary>
+          <p>
+            Dùng Khôi phục mặc định trong preview. Config lưu riêng cho UID/server; đổi tài khoản
+            không nên dùng lẫn ID nhân vật từ tài khoản trước. Khi đổi schema config cần normalize
+            tương thích hoặc tăng key version có chủ đích.
+          </p>
+        </details>
+      </section>
+      <section id="checks">
+        <h2>Khi check hoặc CI thất bại</h2>
+        <table>
+          <tr>
+            <th>Check</th>
+            <th>Cách xử lý</th>
+          </tr>
+          <tr>
+            <td>format:check</td>
+            <td>Chạy npm run format, đọc diff rồi commit thay đổi định dạng.</td>
+          </tr>
+          <tr>
+            <td>check:source</td>
+            <td>Sửa cú pháp ở module được báo; không cần tài khoản thật.</td>
+          </tr>
+          <tr>
+            <td>check:docs</td>
+            <td>Sửa đường dẫn/anchor và mở lại trang HTML.</td>
+          </tr>
+          <tr>
+            <td>check:private</td>
+            <td>
+              Unstage file riêng, chuyển dữ liệu vào data; không nới .gitignore chỉ để check qua.
+            </td>
+          </tr>
+          <tr>
+            <td>Test auth/collector</td>
+            <td>
+              Dùng fixture để kiểm tra thay đổi request/schema, giữ retcode và trạng thái lỗi.
+            </td>
+          </tr>
+        </table>
+      </section>
+      <footer>
+        <span>HoyoShowcase · Tài liệu trong repo</span
+        ><a href="../README.html#quick-start">Quay về bắt đầu ↑</a>
+      </footer>
+    </main>
+  </body>
+</html>

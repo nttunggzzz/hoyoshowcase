@@ -1,0 +1,25 @@
+{
+  "name": "hoyoshowcase",
+  "version": "0.7.0",
+  "private": true,
+  "description": "Local Genshin Battle Chronicle collector, account showcase and PNG preview builder",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node src/server/index.mjs",
+    "dev": "node --watch src/server/index.mjs",
+    "demo": "node scripts/demo.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check:source": "node scripts/check-source.mjs",
+    "check:docs": "node scripts/check-docs.mjs",
+    "check:private": "node scripts/check-private-files.mjs",
+    "check": "npm run format:check && npm run check:source && npm run check:docs && npm run check:private && npm test"
+  },
+  "devDependencies": {
+    "prettier": "3.9.10"
+  }
+}

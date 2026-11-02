@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <title>Kiến trúc · HoyoShowcase</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="skip" href="#content">Đi đến nội dung</a>
+    <aside class="sidebar">
+      <a class="brand" href="../README.html"
+        ><span>✦</span> HOYO<span class="brand-light">SHOWCASE</span></a
+      >
+      <p class="edition">PROJECT HANDBOOK / 0.7</p>
+      <nav aria-label="Tài liệu">
+        <a href="../README.html">Bắt đầu</a><a href="../docs/index.html">Bản đồ tài liệu</a
+        ><a class="active" aria-current="page" href="../docs/architecture.html">Kiến trúc</a
+        ><a href="../docs/contributing.html">Làm việc cùng nhau</a
+        ><a href="../docs/data-model.html">Dữ liệu & API</a
+        ><a href="../docs/security.html">Phiên & dữ liệu riêng</a
+        ><a href="../docs/troubleshooting.html">Xử lý lỗi</a>
+      </nav>
+      <div class="sidebar-foot">
+        <span>Node 22+ · ES modules</span
+        ><a href="https://github.com/Ponie25/HoyoShowcase">Repository ↗</a>
+      </div>
+    </aside>
+    <main id="content">
+      <header class="page-top"><span>HoyoShowcase / Kiến trúc</span><span>02.11.2026</span></header>
+      <p class="eyebrow">HANDBOOK / 01</p>
+      <h1>Kiến trúc<span>Nhỏ, rõ, không cần build.</span></h1>
+      <p class="lead">
+        Node HTTP server + ES modules trong trình duyệt. Không framework hoặc dependency khi chạy;
+        dev tooling hiện có Prettier.
+      </p>
+      <section id="tree">
+        <h2>Bản đồ source</h2>
+        <pre><code>src/
+  server/
+    index.mjs             Điểm chạy, port, thư mục data
+    app.mjs               HTTP, Host/Origin/CSRF và điều phối
+    http.mjs              Response, JSON body, lỗi HTTP
+    session-store.mjs     Credential RAM, TTL, giới hạn phiên
+    snapshot-store.mjs    Lưu dữ liệu game theo hàng đợi + rename
+    routes/api.mjs        Các thao tác API theo phiên
+    routes/static.mjs     Tệp public, tài liệu và CSP
+    hoyolab/              Endpoint, cookie, transport, auth
+    collection/           Kế hoạch thu thập và buildViews
+    models/               Showcase view và danh mục thông tin
+    media/                Cache/proxy ảnh CDN công khai
+  shared/
+    preview-config.mjs    Config, chọn item, tính hình học ảnh
+public/
+  index.html              Trang showcase chính
+  js/collection-controller.js
+  js/showcase.js
+  js/preview/             controller, settings, renderer, helper
+  css/                    Style theo tính năng
+  assets/                 Icon/nền game, font + giấy phép
+tests/                    Unit/integration tests
+  fixtures/               Transport và dữ liệu giả lập
+scripts/                  Check, format support, demo
+docs/                     Handbook HTML
+data/                     Dữ liệu cá nhân, Git bỏ qua</code></pre>
+      </section>
+      <section id="collection">
+        <h2>Luồng đồng bộ</h2>
+        <div class="flow">
+          <span>Form local</span><b>→</b><span>API + CSRF</span><b>→</b><span>Phiên RAM</span
+          ><b>→</b><span>HoYoLAB Web</span>
+        </div>
+        <p>
+          <code>collection-controller.js</code> phụ trách form, xác minh, role và polling.
+          <code>routes/api.mjs</code> gọi client và collector. Transport chỉ chấp nhận operation đã
+          đăng ký, giữ giãn nhịp, timeout, retry đọc có giới hạn và audit không chứa credential.
+        </p>
+        <p>
+          Collector lấy tổng quan trước, rồi chạy các nhánh độc lập. Chi tiết nhân vật chia nhóm 10;
+          tối đa 4 request đang xử lý, cách thời điểm bắt đầu ít nhất 120 ms. Thẻ bài đi theo cursor
+          máy chủ. Hết phiên/CAPTCHA/rate limit sẽ dừng các nhánh còn lại. Không tăng nhịp để vượt
+          giới hạn.
+        </p>
+        <p>
+          Mỗi lần nhận dữ liệu, <code>buildViews</code> tạo nhân vật và trang bị. Snapshot hoàn tất
+          được lọc credential, cập nhật cache RAM và lưu nguyên tử. Các request ghi file trong một
+          tiến trình được xếp hàng; không hỗ trợ nhiều tiến trình ghi cùng thư mục.
+        </p>
+      </section>
+      <section id="preview">
+        <h2>Luồng preview</h2>
+        <div class="flow">
+          <span>Showcase model</span><b>→</b><span>Config theo UID</span><b>→</b
+          ><span>Plan hình học</span><b>→</b><span>Canvas → PNG</span>
+        </div>
+        <table>
+          <tr>
+            <th>Module</th>
+            <th>Trách nhiệm</th>
+          </tr>
+          <tr>
+            <td><code>preview/controller.js</code></td>
+            <td>
+              Sở hữu config, event, localStorage, debounce/generation guard, download và click thẻ.
+            </td>
+          </tr>
+          <tr>
+            <td><code>preview/settings.js</code></td>
+            <td>
+              Render form, danh mục thông tin và danh sách chỉ số. Không sở hữu tiến trình vẽ.
+            </td>
+          </tr>
+          <tr>
+            <td><code>shared/preview-config.mjs</code></td>
+            <td>Hàm thuần: normalize, rarity/C6, chọn item, tính kích thước và giới hạn pixel.</td>
+          </tr>
+          <tr>
+            <td><code>preview/renderer.js</code></td>
+            <td>
+              Tải asset cần thiết và vẽ các khối account, khám phá, build theo plan đã kiểm tra.
+            </td>
+          </tr>
+          <tr>
+            <td><code>preview/media.js</code></td>
+            <td>URL ảnh same-origin và cache promise; tối đa 6 worker tải trong renderer.</td>
+          </tr>
+          <tr>
+            <td>
+              <code>canvas-painter.js</code>, <code>format.js</code>, <code>world-data.js</code>
+            </td>
+            <td>Primitive vẽ, định dạng và nhóm khu vực; không đọc config từ DOM.</td>
+          </tr>
+        </table>
+        <p>
+          Thay đổi config làm tăng generation; lượt tải ảnh cũ không được ghi đè canvas mới. Không
+          suy ra chỉ số sát thương, không đổi dữ liệu thiếu thành số 0. Giới hạn 32 megapixel và
+          16000 px chiều cao được kiểm tra trước khi dựng canvas.
+        </p>
+      </section>
+      <section id="boundaries">
+        <h2>Ranh giới nên giữ</h2>
+        <ul>
+          <li>Code DOM ở <code>public</code>; logic tính toán dùng chung không tham chiếu DOM.</li>
+          <li>Cookie, chữ ký request và auth chỉ ở server.</li>
+          <li>API trả view model gọn cho UI; JSON xuất đầy đủ vẫn giữ field game chưa biết.</li>
+          <li>
+            Không nhập source server vào trình duyệt và không mở route phục vụ <code>src</code>,
+            <code>data</code>, <code>.git</code>.
+          </li>
+          <li>
+            Trang <code>/research</code> giữ các luồng nghiên cứu cũ (SDK/app, Enka, wish). Nó không
+            phải flow đăng nhập mặc định của showcase và không thuộc collector toàn bộ Chronicle.
+          </li>
+        </ul>
+      </section>
+      <footer>
+        <span>HoyoShowcase · Tài liệu trong repo</span
+        ><a href="../README.html#quick-start">Quay về bắt đầu ↑</a>
+      </footer>
+    </main>
+  </body>
+</html>

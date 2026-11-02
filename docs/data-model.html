@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <title>Dữ liệu & API · HoyoShowcase</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="skip" href="#content">Đi đến nội dung</a>
+    <aside class="sidebar">
+      <a class="brand" href="../README.html"
+        ><span>✦</span> HOYO<span class="brand-light">SHOWCASE</span></a
+      >
+      <p class="edition">PROJECT HANDBOOK / 0.7</p>
+      <nav aria-label="Tài liệu">
+        <a href="../README.html">Bắt đầu</a><a href="../docs/index.html">Bản đồ tài liệu</a
+        ><a href="../docs/architecture.html">Kiến trúc</a
+        ><a href="../docs/contributing.html">Làm việc cùng nhau</a
+        ><a class="active" aria-current="page" href="../docs/data-model.html">Dữ liệu & API</a
+        ><a href="../docs/security.html">Phiên & dữ liệu riêng</a
+        ><a href="../docs/troubleshooting.html">Xử lý lỗi</a>
+      </nav>
+      <div class="sidebar-foot">
+        <span>Node 22+ · ES modules</span
+        ><a href="https://github.com/Ponie25/HoyoShowcase">Repository ↗</a>
+      </div>
+    </aside>
+    <main id="content">
+      <header class="page-top">
+        <span>HoyoShowcase / Dữ liệu & API</span><span>02.11.2026</span>
+      </header>
+      <p class="eyebrow">HANDBOOK / 03</p>
+      <h1>Dữ liệu & API<span>Giữ nguyên dữ liệu, hiểu đúng ý nghĩa.</span></h1>
+      <p class="lead">
+        Phân biệt snapshot đầy đủ, model cho giao diện và tùy chỉnh ảnh. Một con số trong danh mục
+        không luôn là số vật phẩm sở hữu.
+      </p>
+      <section id="snapshot">
+        <h2>Snapshot v1</h2>
+        <pre><code>{
+  "schema": "genshin-battle-chronicle-v1",
+  "id": "snapshot UUID",
+  "source": { "collectorVersion": "0.7.0", "clientDate": "2026-11-02" },
+  "credentialSource": "hoyolab_web",
+  "role": { "uid": "UID đã chọn", "server": "os_asia" },
+  "state": "complete",
+  "sections": { "overview": { "state": "ok", "data": {} } },
+  "views": { "characters": [], "equippedWeapons": [], "equippedArtifacts": [] },
+  "summary": { "characters": 0, "requests": 0 }
+}</code></pre>
+        <p>
+          Ví dụ trên minh họa cấu trúc, không phải dữ liệu import. Snapshot còn có thời điểm bắt
+          đầu/kết thúc và limitations. Mỗi section giữ endpoint/method, state, requestCount và dữ
+          liệu API; module động giữ batches/pages/records thay vì mất phần đã đọc.
+          <code>stripCredentials</code> loại key credential đệ quy và các key prototype nguy hiểm.
+        </p>
+        <p>
+          <code>buildViews</code> kết hợp list với detail. Mỗi bản vũ khí/thánh di vật có
+          characterId; không gộp các bản cùng weapon ID. <code>showcaseModel</code> tạo profile,
+          stats, characters, allProperties, propertyMap, regions, previewFacts, notes và module
+          status gọn cho UI; không đưa toàn bộ body TCG vào view.
+        </p>
+      </section>
+      <section id="coverage">
+        <h2>Phạm vi và trạng thái</h2>
+        <table>
+          <tr>
+            <th>Nhóm</th>
+            <th>Dữ liệu</th>
+          </tr>
+          <tr>
+            <td>Hồ sơ & thế giới</td>
+            <td>Role, overview, khu vực/nhóm khám phá, tượng, hiến tế, Ấm Trần Ca.</td>
+          </tr>
+          <tr>
+            <td>Nhân vật</td>
+            <td>
+              Toàn bộ list và detail theo batch; vũ khí, relics, stats, thiên phú, cung mệnh, field
+              trang phục khi API trả.
+            </td>
+          </tr>
+          <tr>
+            <td>Chiến đấu</td>
+            <td>La Hoàn hiện tại/kỳ trước, các kỳ Nhà Hát/U Cảnh còn trả, popularity và Dư Âm.</td>
+          </tr>
+          <tr>
+            <td>Tiến độ</td>
+            <td>Thành tựu, báo cáo sự kiện, lịch và daily notes.</td>
+          </tr>
+          <tr>
+            <td>Thất Thánh</td>
+            <td>
+              Tổng quan, danh mục thẻ phân trang, lưng thẻ, bộ bài/chi tiết, trận và các kỳ thử
+              thách.
+            </td>
+          </tr>
+          <tr>
+            <td>TPS</td>
+            <td>
+              Bỏ qua nếu mọi detail đã đọc đủ và unlock_tps=false; có cờ mở hoặc thiếu thông tin thì
+              thử đọc.
+            </td>
+          </tr>
+        </table>
+        <p>
+          Module state: <code>queued</code>, <code>running</code>, <code>ok</code>,
+          <code>not_applicable</code>, <code>partial</code>, <code>unavailable</code>,
+          <code>error</code>, <code>skipped</code>. Trạng thái lượt thu thập gồm <code>idle</code>,
+          <code>running</code>, <code>complete</code>, <code>partial</code>, <code>cancelled</code>,
+          <code>expired</code>, <code>needs_verification</code>, <code>rate_limited</code>,
+          <code>request_limit</code>, <code>failed</code>.
+        </p>
+        <div class="note">
+          <strong>Không đồng nhất dữ liệu thiếu với 0.</strong> Module khóa/ẩn/lỗi phải giữ lý do.
+          Số thẻ danh mục khác số thẻ sở hữu. Chỉ các section ok/not_applicable mới cho kết quả
+          complete. Snapshot gồm nhiều request, không phải một thời điểm máy chủ nguyên tử.
+        </div>
+      </section>
+      <section id="http">
+        <h2>HTTP local</h2>
+        <p>
+          Chỉ chấp nhận Host <code>127.0.0.1:&lt;port&gt;</code>. Không gửi query string. POST API
+          cần cùng Origin, <code>Content-Type: application/json</code>, cookie phiên và header
+          <code>x-poc-csrf</code> nhận từ GET session. Header/cookie có tên cũ để giữ tương thích;
+          đừng đổi riêng một phía.
+        </p>
+        <table>
+          <tr>
+            <th>Method / route</th>
+            <th>Kết quả hoặc đầu vào</th>
+          </tr>
+          <tr>
+            <td>GET /, /collector</td>
+            <td>Giao diện chính; /collector là alias tương thích.</td>
+          </tr>
+          <tr>
+            <td>GET /README.html, /docs/</td>
+            <td>Tài liệu HTML.</td>
+          </tr>
+          <tr>
+            <td>GET /api/session</td>
+            <td>{csrf, expiresAt, status}; tạo phiên nếu chưa có.</td>
+          </tr>
+          <tr>
+            <td>GET /api/showcase/saved</td>
+            <td>{view}; bản đã lưu, không cần đăng nhập lại.</td>
+          </tr>
+          <tr>
+            <td>GET /api/showcase/archive</td>
+            <td>JSON dữ liệu game đã lưu.</td>
+          </tr>
+          <tr>
+            <td>POST /api/login</td>
+            <td>{account, password, profile: "hoyolab_web", deviceId}; UI mặc định web.</td>
+          </tr>
+          <tr>
+            <td>POST /api/captcha, /api/refresh-captcha</td>
+            <td>Validation provider hoặc yêu cầu challenge mới, có giới hạn thủ công.</td>
+          </tr>
+          <tr>
+            <td>POST /api/send-otp, /api/otp</td>
+            <td>Chỉ dùng khi flow đang có risk challenge hợp lệ.</td>
+          </tr>
+          <tr>
+            <td>POST /api/cookies, /api/roles, /api/select</td>
+            <td>Cookie đã có / chọn route labRoles / {uid, server} thuộc role đã xác thực.</td>
+          </tr>
+          <tr>
+            <td>POST /api/collector/start</td>
+            <td>Bắt đầu lượt; dùng giới hạn mặc định của collector.</td>
+          </tr>
+          <tr>
+            <td>POST /api/collector/status, /api/collector/view</td>
+            <td>Trạng thái hoặc model UI hiện tại.</td>
+          </tr>
+          <tr>
+            <td>POST /api/collector/export, /api/collector/cancel</td>
+            <td>Snapshot đã lọc hoặc dừng lượt và giữ dữ liệu đã đọc.</td>
+          </tr>
+          <tr>
+            <td>POST /api/reset</td>
+            <td>Xóa credential, job và audit của phiên RAM; không xóa file dữ liệu game đã lưu.</td>
+          </tr>
+          <tr>
+            <td>GET /media/&lt;base64url&gt;</td>
+            <td>Ảnh raster CDN công khai trong allowlist; không gửi cookie HoYoLAB.</td>
+          </tr>
+        </table>
+        <p>
+          Các route nghiên cứu cũ được giữ ở <code>routes/api.mjs</code>: Enka showcase, app/SDK
+          exchange và wish backup. Không dùng chúng để thay flow web của collector. Mỗi kết quả API
+          theo phiên kèm safeStatus; lỗi không xuất body hoặc header upstream.
+        </p>
+      </section>
+      <section id="events">
+        <h2>Sự kiện frontend</h2>
+        <table>
+          <tr>
+            <th>Tên</th>
+            <th>Ý nghĩa</th>
+          </tr>
+          <tr>
+            <td>chronicle:session</td>
+            <td>
+              Collection controller phát {status, busy, polling, csrf}; showcase dùng cập nhật trạng
+              thái và request.
+            </td>
+          </tr>
+          <tr>
+            <td>chronicle:request-session</td>
+            <td>Yêu cầu controller phát lại session hiện tại khi module tải sau.</td>
+          </tr>
+          <tr>
+            <td>chronicle:collection</td>
+            <td>Báo snapshot/trạng thái job thay đổi; showcase đọc model mới.</td>
+          </tr>
+          <tr>
+            <td>showcase:rendered</td>
+            <td>Phát showcase model hiện tại cho preview.</td>
+          </tr>
+          <tr>
+            <td>showcase:request-data</td>
+            <td>Yêu cầu phát lại model, tránh phụ thuộc thứ tự script tải.</td>
+          </tr>
+          <tr>
+            <td>showcase:open-character</td>
+            <td>{id}; mở modal build của nhân vật.</td>
+          </tr>
+        </table>
+      </section>
+      <section id="config">
+        <h2>Config preview</h2>
+        <p>
+          Key localStorage: <code>genshin.preview.v2.&lt;uid&gt;.&lt;server&gt;</code>.
+          <code>normalizeConfig</code> whitelist công tắc, clamp số cột/hàng/item, loại ID không tồn
+          tại và giới hạn 6 build. Mảng buildIds/statIds rỗng do người dùng chọn được giữ rỗng,
+          không tự chọn lại.
+        </p>
+        <p>
+          <code>planPreview</code> tính trên chiều rộng cơ sở 1600 px, sau đó scale ra
+          1200/1600/2400/3200. Giới hạn hàng và item lấy mức chặt hơn; số tổng tài khoản giữ riêng.
+          Stat lấy final từ các nhóm API, không tự tính buff chiến đấu. Khi đổi định dạng config,
+          cần giữ tương thích hoặc tăng key version có chủ đích.
+        </p>
+      </section>
+      <footer>
+        <span>HoyoShowcase · Tài liệu trong repo</span
+        ><a href="../README.html#quick-start">Quay về bắt đầu ↑</a>
+      </footer>
+    </main>
+  </body>
+</html>

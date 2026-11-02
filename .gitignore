@@ -1,0 +1,16 @@
+node_modules/
+data/*
+!data/.gitkeep
+.env
+.env.*
+!.env.example
+*.log
+*.dpapi
+*.zip
+coverage/
+test-results/
+playwright-report/
+work/
+outputs/
+.DS_Store
+Thumbs.db

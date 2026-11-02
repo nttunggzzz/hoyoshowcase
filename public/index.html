@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="vi" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#0d1119" />
+    <title>HoyoShowcase · Hồ sơ nhà lữ hành</title>
+    <link rel="stylesheet" href="/css/showcase.css" />
+    <link rel="stylesheet" href="/css/preview.css" />
+    <script src="/js/collection-controller.js" type="module"></script>
+    <script src="/js/showcase.js" type="module"></script>
+    <script src="/js/preview/controller.js" type="module"></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="wordmark" href="#overview"
+        ><span class="brand-mark" aria-hidden="true">✦</span> TEYVAT <span>ARCHIVE</span></a
+      >
+      <nav aria-label="Điều hướng chính">
+        <a href="#overview" class="active">Tổng quan</a><a href="#collection">Bộ sưu tập</a
+        ><a href="#account-preview">Preview account</a><a href="#exploration">Khám phá</a>
+      </nav>
+      <div class="header-actions">
+        <button id="theme-toggle" class="icon-button" aria-label="Đổi giao diện sáng tối">
+          Sáng</button
+        ><button id="connect-open" class="text-button">Tài khoản</button
+        ><button id="showcase-refresh" class="button primary">
+          Đồng bộ dữ liệu <span aria-hidden="true">↻</span>
+        </button>
+      </div>
+    </header>
+    <main id="showcase-main">
+      <section id="overview" class="profile-head">
+        <div>
+          <p class="eyebrow">HỒ SƠ NHÀ LỮ HÀNH</p>
+          <h1 id="profile-name">Hành trình của bạn</h1>
+          <p id="profile-meta" class="muted">Kết nối HoYoLAB để mở bộ sưu tập của bạn.</p>
+        </div>
+        <div class="sync-info">
+          <span id="showcase-freshness">Đang mở bản đã lưu</span
+          ><button id="showcase-export" class="text-button">Tải dữ liệu ↓</button>
+        </div>
+      </section>
+      <section id="hero" class="hero skeleton" aria-label="Nhân vật nổi bật">
+        <div class="hero-copy">
+          <p id="hero-kicker" class="eyebrow">NHÂN VẬT NỔI BẬT</p>
+          <h2 id="hero-name">Những người<br />đồng hành.</h2>
+          <p id="hero-caption" class="hero-caption">
+            Mỗi nhân vật, một câu chuyện trong hành trình của bạn.
+          </p>
+          <div id="hero-build" class="hero-build"></div>
+          <button id="hero-detail" class="button primary" disabled>
+            Xem chi tiết nhân vật <span aria-hidden="true">↗</span>
+          </button>
+          <div id="hero-switcher" class="hero-switcher" aria-label="Chọn nhân vật nổi bật"></div>
+        </div>
+        <div class="hero-art">
+          <div class="art-disc"></div>
+          <span id="hero-element-word" class="element-word" aria-hidden="true"></span
+          ><img id="hero-image" alt="" fetchpriority="high" />
+          <div class="art-caption">
+            <span id="hero-element"></span><span id="hero-rarity"></span>
+          </div>
+        </div>
+        <div id="hero-stats" class="hero-stats"></div>
+      </section>
+      <section id="daily-panel" class="daily-strip" aria-label="Tình trạng hàng ngày"></section>
+      <section id="collection" class="collection-section">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">BỘ SƯU TẬP CỦA BẠN</p>
+            <h2>Những người đồng hành<span id="roster-total" class="count-label"></span></h2>
+          </div>
+          <div class="view-tabs" role="tablist" aria-label="Loại bộ sưu tập">
+            <button id="tab-characters" role="tab" aria-selected="true">Nhân vật</button
+            ><button id="tab-weapons" role="tab" aria-selected="false">Vũ khí</button>
+          </div>
+        </div>
+        <div class="collection-toolbar">
+          <div id="element-filters" class="element-filters" aria-label="Lọc nguyên tố"></div>
+          <div class="search-controls">
+            <label class="search-label"
+              ><span aria-hidden="true">⌕</span
+              ><input
+                id="roster-search"
+                type="search"
+                placeholder="Tìm nhân vật, vũ khí…"
+                aria-label="Tìm trong bộ sưu tập" /></label
+            ><select id="roster-sort" aria-label="Sắp xếp bộ sưu tập">
+              <option value="level">Cấp cao nhất</option>
+              <option value="rarity">Độ hiếm</option>
+              <option value="name">Tên A-Z</option>
+              <option value="constellation">Cung mệnh</option>
+            </select>
+          </div>
+        </div>
+        <div id="roster-grid" class="roster-grid" aria-live="polite"></div>
+        <div id="roster-empty" class="empty-state" hidden>
+          <h3>Chưa tìm thấy người đồng hành</h3>
+          <p>Thử tên khác hoặc chọn tất cả nguyên tố.</p>
+        </div>
+        <button id="roster-more" class="button outline load-more" hidden>Xem thêm nhân vật</button>
+        <p id="equipment-note" class="collection-note" hidden>
+          Vũ khí đang trang bị trên nhân vật, gồm từng bản riêng biệt.
+        </p>
+      </section>
+      <section id="account-preview" class="account-preview-section">
+        <div class="section-head">
+          <div>
+            <h2>Preview account</h2>
+            <p class="preview-description">
+              Tự chọn bố cục, thành tích và build để kể câu chuyện của tài khoản.
+            </p>
+          </div>
+          <div class="preview-actions">
+            <button id="preview-settings-toggle" class="button outline" aria-expanded="true">
+              Ẩn tùy chỉnh</button
+            ><button id="preview-zoom" class="button outline">Phóng to</button
+            ><button id="preview-download" class="button primary" disabled>Tải ảnh PNG ↓</button>
+          </div>
+        </div>
+        <div class="preview-workspace" id="preview-workspace">
+          <aside id="preview-customizer" aria-label="Tùy chỉnh ảnh account">
+            <div class="preview-preset-bar">
+              <span>BỐ CỤC NHANH</span>
+              <div>
+                <button data-preset="compact">Gọn</button
+                ><button data-preset="vip">Nổi bật C6</button
+                ><button data-preset="full">Đầy đủ</button
+                ><button data-preset="build">Chỉ build</button>
+              </div>
+            </div>
+            <div id="preview-controls-body"><p>Đang đọc dữ liệu tùy chỉnh…</p></div>
+            <button id="preview-reset" class="text-button">Khôi phục mặc định</button>
+            <p class="preview-save-note">Tùy chỉnh được lưu riêng cho UID này trên trình duyệt.</p>
+          </aside>
+          <div class="preview-result">
+            <div class="preview-result-meta">
+              <p id="preview-summary"></p>
+              <output id="preview-dimensions"></output>
+            </div>
+            <p id="preview-error" role="alert" hidden></p>
+            <div class="preview-frame">
+              <canvas
+                id="account-canvas"
+                width="1600"
+                height="1000"
+                role="img"
+                aria-label="Ảnh account theo tùy chỉnh"
+              ></canvas>
+              <p id="preview-loading" role="status">Cuộn đến đây để mở Preview account.</p>
+            </div>
+            <p class="preview-footnote">
+              Vũ khí là các bản đang trang bị. Chỉ số lấy từ Battle Chronicle tại thời điểm đồng bộ.
+              Bấm thẻ để xem nhân vật.
+            </p>
+          </div>
+        </div>
+      </section>
+      <section id="exploration" class="world-section">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">THẾ GIỚI CỦA BẠN</p>
+            <h2>Tiến độ khám phá thế giới</h2>
+          </div>
+        </div>
+        <div class="world-layout">
+          <div class="exploration-panel">
+            <div class="panel-heading">
+              <h3>Tiến độ khám phá</h3>
+              <span id="region-count" class="muted"></span>
+            </div>
+            <div id="regions" class="regions"></div>
+            <button id="regions-toggle" class="text-button">Xem tất cả khu vực ↗</button>
+          </div>
+          <div class="journey-panels">
+            <div id="battle-panel" class="battle-panel"></div>
+            <div id="archive-panel" class="archive-panel"></div>
+          </div>
+        </div>
+      </section>
+      <section class="data-foot">
+        <div>
+          <p class="eyebrow">BATTLE CHRONICLE</p>
+          <p id="data-status">Chưa có dữ liệu trong hồ sơ.</p>
+        </div>
+        <button id="progress-open" class="text-button">Trạng thái đồng bộ ↗</button>
+      </section>
+      <div id="showcase-notice" role="status" hidden></div>
+    </main>
+    <footer>
+      <a class="wordmark" href="#overview">TEYVAT <span>ARCHIVE</span></a>
+      <p>Hành trình của bạn, lưu trên máy của bạn.</p>
+      <a
+        href="https://act.hoyolab.com/app/community-game-records-sea/index.html"
+        target="_blank"
+        rel="noreferrer"
+        >HoYoLAB ↗</a
+      >
+    </footer>
+    <dialog id="character-dialog" class="character-dialog" aria-labelledby="character-dialog-title">
+      <button id="character-close" class="dialog-close" aria-label="Đóng chi tiết nhân vật">
+        ×
+      </button>
+      <div id="character-content"></div>
+    </dialog>
+    <dialog
+      id="collector-console"
+      class="collector-console"
+      aria-label="Kết nối và đồng bộ HoYoLAB"
+    >
+      <div class="console-heading">
+        <div>
+          <p class="eyebrow">KẾT NỐI HOYOLAB</p>
+          <h2>Tài khoản và đồng bộ</h2>
+        </div>
+        <button id="collector-close" class="dialog-close" aria-label="Đóng bảng đồng bộ">×</button>
+      </div>
+      <div class="console-content">
+        <section>
+          <h2>1 · Đăng nhập HoYoLAB Web</h2>
+          <p id="collector-auth-note">
+            Dùng luồng đăng nhập web HoYoLAB. Chỉ Device ID được giữ ổn định trong trình duyệt;
+            cookie/token ở RAM local tối đa 20 phút. CAPTCHA hoặc xác minh bổ sung chỉ xuất hiện nếu
+            HoYoLAB yêu cầu.
+          </p>
+          <form id="collector-login" autocomplete="off">
+            <label
+              >Tài khoản HoYoLAB
+              <input name="account" autocomplete="off" required maxlength="240" /></label
+            ><label
+              >Mật khẩu
+              <input name="password" type="password" autocomplete="new-password" required /></label
+            ><button type="submit">Đăng nhập Web và chuẩn bị dữ liệu</button>
+          </form>
+          <button id="collector-change-account" type="button" hidden>Đổi tài khoản</button>
+          <div id="collector-otp" hidden>
+            <p id="collector-otp-note"></p>
+            <button type="button" id="collector-send-otp">Gửi OTP email</button>
+            <form id="collector-otp-form" autocomplete="off">
+              <label
+                >OTP 6 chữ số
+                <input
+                  name="code"
+                  type="password"
+                  inputmode="numeric"
+                  pattern="[0-9]{6}"
+                  autocomplete="off"
+                  required /></label
+              ><button>Xác minh</button>
+            </form>
+          </div>
+          <div id="collector-captcha-box" hidden>
+            <p>Tự hoàn tất CAPTCHA trong khung bên dưới.</p>
+            <button type="button" id="collector-refresh-captcha">Yêu cầu CAPTCHA mới</button
+            ><iframe
+              id="collector-captcha"
+              title="Xác minh Geetest"
+              sandbox="allow-scripts"
+              src="about:blank"
+            ></iframe>
+          </div>
+          <details>
+            <summary>Dùng cookie HoYoLAB đã có</summary>
+            <form id="collector-cookies" autocomplete="off">
+              <label
+                >Cookie header hoặc JSON
+                <input name="cookies" type="password" autocomplete="new-password" required /></label
+              ><button>Nạp cookie và tìm tài khoản</button>
+            </form>
+          </details>
+          <p id="collector-account-state" class="muted">Đang tạo phiên local…</p>
+        </section>
+        <section>
+          <h2>2 · Chọn tài khoản Genshin</h2>
+          <form id="collector-role-form">
+            <label
+              >UID / server
+              <select id="collector-roles" required>
+                <option value="">Đăng nhập để lấy danh sách</option>
+              </select></label
+            ><button id="collector-start">Lấy toàn bộ dữ liệu</button>
+          </form>
+          <label class="check"
+            ><input id="collector-auto-download" type="checkbox" checked /> Tự tải tệp JSON khi hoàn
+            tất</label
+          >
+        </section>
+        <section aria-live="polite">
+          <div class="section-title">
+            <h2>3 · Kết quả thu thập</h2>
+            <span id="collector-state" class="badge">Chưa chạy</span>
+          </div>
+          <p id="collector-message">
+            Mỗi nhân vật đều được lấy chi tiết, không giới hạn ở showcase hoặc 3 mẫu thử.
+          </p>
+          <div class="metrics">
+            <div><strong id="collector-character-count">-</strong><span>Nhân vật</span></div>
+            <div>
+              <strong id="collector-weapon-count">-</strong><span>Vũ khí đang trang bị</span>
+            </div>
+            <div>
+              <strong id="collector-artifact-count">-</strong
+              ><span>Thánh di vật đang trang bị</span>
+            </div>
+            <div>
+              <strong id="collector-module-count">-</strong><span>Mục dữ liệu hoàn tất</span>
+            </div>
+          </div>
+          <div class="actions">
+            <button id="collector-download" type="button" disabled>Tải toàn bộ JSON</button
+            ><button id="collector-cancel" type="button" disabled>Dừng và giữ phần đã lấy</button
+            ><button id="collector-clear" type="button">Kết thúc phiên và xóa RAM</button>
+          </div>
+          <p id="collector-time" class="muted"></p>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Mục dữ liệu</th>
+                  <th>Trạng thái</th>
+                  <th>Chi tiết</th>
+                </tr>
+              </thead>
+              <tbody id="collector-modules">
+                <tr>
+                  <td colspan="3">Chưa có lượt thu thập.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <details id="collector-preview" hidden>
+            <summary>Xem nhân vật và vũ khí đã lấy</summary>
+            <input
+              id="collector-search"
+              type="search"
+              placeholder="Tìm tên nhân vật hoặc vũ khí"
+              aria-label="Tìm nhân vật hoặc vũ khí"
+            />
+            <div class="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Nhân vật</th>
+                    <th>Cấp</th>
+                    <th>Cung mệnh</th>
+                    <th>Vũ khí</th>
+                    <th>Cấp / tinh luyện</th>
+                  </tr>
+                </thead>
+                <tbody id="collector-characters"></tbody>
+              </table>
+            </div>
+          </details>
+          <details>
+            <summary>Phạm vi và giới hạn</summary>
+            <ul>
+              <li>
+                Thống kê, khám phá, nhân vật, vũ khí/thánh di vật đang gắn, La Hoàn hiện tại và kỳ
+                trước, Nhà Hát, U Cảnh, thành tựu, ghi chú thời gian thực, sự kiện và lịch hoạt
+                động, Thất Thánh cùng các kỳ/thẻ/bộ bài API còn trả.
+              </li>
+              <li>
+                Giữ nguyên dữ liệu trả về, kể cả trường chưa có trong bảng xem trước. Nếu một mục
+                lỗi, các mục độc lập còn lại tiếp tục; khi hết phiên, cần CAPTCHA hoặc bị giới hạn
+                request, lượt lấy sẽ dừng rõ trạng thái.
+              </li>
+              <li>
+                Không tự bật quyền công khai hoặc thay đổi cài đặt tài khoản. Không lấy lịch sử cầu
+                nguyện từ trang này.
+              </li>
+              <li>
+                Giới hạn mỗi lượt 300 request, 200 trang thẻ bài. Nếu chạm giới hạn, tệp xuất được
+                đánh dấu chưa đầy đủ.
+              </li>
+              <li>
+                Dữ liệu trong RAM sẽ mất khi đóng server hoặc phiên hết hạn. Tải JSON để giữ bản
+                sao.
+              </li>
+            </ul>
+          </details>
+        </section>
+      </div>
+    </dialog>
+  </body>
+</html>
