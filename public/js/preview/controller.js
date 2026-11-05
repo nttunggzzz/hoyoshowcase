@@ -5,6 +5,7 @@ import {
   planPreview,
   properties,
 } from '/shared/preview-config.mjs';
+import { parsePityData } from './format.js';
 import { createPreviewSettings } from './settings.js';
 import { renderAccountPreview } from './renderer.js';
 
@@ -31,9 +32,60 @@ function initializePreview() {
   function setup() {
     settings.setup();
     updateSummary();
+    updatePityDisplay();
   }
   const updateFacts = () => settings.updateFacts();
   const updateStats = () => settings.updateStats();
+  function updatePityDisplay(sourceMsg) {
+    if (!config) return;
+    const badgeChar = $('pity-badge-char');
+    if (badgeChar) badgeChar.textContent = `${config.charPity} / 90`;
+    const badgeGuaranteed = $('pity-badge-guaranteed');
+    if (badgeGuaranteed) {
+      badgeGuaranteed.textContent = config.charGuaranteed ? 'Bảo hiểm' : '50/50';
+      badgeGuaranteed.className = `pity-chip-sub ${config.charGuaranteed ? 'guaranteed' : 'fifty'}`;
+    }
+    const badgeWeapon = $('pity-badge-weapon');
+    if (badgeWeapon) badgeWeapon.textContent = `${config.weaponPity} / 80`;
+    const badgeRolls = $('pity-badge-rolls');
+    if (badgeRolls) badgeRolls.textContent = `${config.rollsLeft}`;
+    const sourceText = $('pity-source-text');
+    if (sourceText && sourceMsg) sourceText.textContent = sourceMsg;
+
+    const inpChar = controls.querySelector('input[data-key="charPity"]');
+    if (inpChar) inpChar.value = config.charPity;
+    const chkGuar = controls.querySelector('input[data-key="charGuaranteed"]');
+    if (chkGuar) chkGuar.checked = config.charGuaranteed;
+    const inpWeap = controls.querySelector('input[data-key="weaponPity"]');
+    if (inpWeap) inpWeap.value = config.weaponPity;
+    const inpRoll = controls.querySelector('input[data-key="rollsLeft"]');
+    if (inpRoll) inpRoll.value = config.rollsLeft;
+    const inpMonth = controls.querySelector('input[data-key="monthCard"]');
+    if (inpMonth && config.monthCard != null) inpMonth.value = config.monthCard;
+  }
+  async function fetchPityFromUid(uid) {
+    if (!uid) return;
+    try {
+      const res = await fetch(`/api/pity/${uid}`);
+      if (!res.ok) return;
+      const json = await res.json();
+      if (json && json.found) {
+        config.charPity = json.charPity;
+        config.charGuaranteed = json.charGuaranteed;
+        config.weaponPity = json.weaponPity;
+        if (json.rollsLeft != null) config.rollsLeft = json.rollsLeft;
+        if (json.monthCard != null) config.monthCard = json.monthCard;
+        config = normalizeConfig(config, data);
+        updatePityDisplay(`Tự động từ ${json.source} (${json.totalWishes} lượt roll)`);
+        schedule();
+      } else if (json && json.message) {
+        const sourceText = $('pity-source-text');
+        if (sourceText) sourceText.textContent = json.message;
+      }
+    } catch (e) {
+      console.warn('Không tải được Pity từ server:', e);
+    }
+  }
   function updateSummary() {
     if (!data || !config) return;
     const p = planPreview(data, config);
@@ -53,6 +105,8 @@ function initializePreview() {
     const run = ++generation;
     ready = false;
     $('preview-download').disabled = true;
+    const copyBtn = $('preview-copy');
+    if (copyBtn) copyBtn.disabled = true;
     clearTimeout(timer);
     updateSummary();
     persist();
@@ -70,9 +124,84 @@ function initializePreview() {
   controls.addEventListener('change', (e) => {
     const t = e.target;
     if (!config) return;
+    if (t.id === 'preview-bg-file' && t.files?.[0]) {
+      const file = t.files[0];
+      const reader = new FileReader();
+      reader.onload = () => {
+        config.background = reader.result;
+        if (['charPity', 'weaponPity', 'rollsLeft', 'monthCard'].includes(t.dataset.key)) {
+          updatePityDisplay('Tùy chỉnh thủ công');
+        }
+        config = normalizeConfig(config, data);
+        schedule();
+      };
+      reader.readAsDataURL(file);
+      return;
+    }
+    if (t.id === 'preview-pity-file' && t.files?.[0]) {
+      const file = t.files[0];
+      const reader = new FileReader();
+      reader.onload = () => {
+        const parsed = parsePityData(reader.result);
+        if (parsed) {
+          config.charPity = parsed.charPity;
+          config.charGuaranteed = parsed.charGuaranteed;
+          config.weaponPity = parsed.weaponPity;
+          if (parsed.rollsLeft != null) config.rollsLeft = parsed.rollsLeft;
+          if (parsed.monthCard != null) config.monthCard = parsed.monthCard;
+          config = normalizeConfig(config, data);
+          const countInfo = parsed.totalWishes ? `${parsed.totalWishes} lượt roll` : 'cấu hình';
+          updatePityDisplay(`Đã nạp từ ${file.name} (${countInfo})`);
+          schedule();
+        } else {
+          alert('Không đọc được dữ liệu Pity từ file JSON này.');
+        }
+      };
+      reader.readAsText(file);
+      return;
+    }
     if (t.dataset.key) {
+      if (t.dataset.key === 'background') {
+        const wrap = $('preview-custom-bg-wrap');
+        if (wrap) wrap.style.display = t.value === 'custom' ? 'block' : 'none';
+      }
+      if (t.dataset.key === 'wishBanner') {
+        const opt = $('preview-wish-options');
+        if (opt) opt.style.display = t.checked ? 'block' : 'none';
+      }
+      if (t.dataset.key === 'sizePreset') {
+        const wInp = controls.querySelector('input[data-key="imageWidth"]');
+        const hInp = controls.querySelector('input[data-key="imageHeight"]');
+        if (t.value === '1980x2040') {
+          if (wInp) wInp.value = 1980;
+          if (hInp) hInp.value = 2040;
+        } else if (t.value === '1920x1080') {
+          if (wInp) wInp.value = 1920;
+          if (hInp) hInp.value = 1080;
+        } else if (t.value === '2560x1440') {
+          if (wInp) wInp.value = 2560;
+          if (hInp) hInp.value = 1440;
+        } else if (t.value === '1080x1920') {
+          if (wInp) wInp.value = 1080;
+          if (hInp) hInp.value = 1920;
+        } else if (t.value === '2048x2048') {
+          if (wInp) wInp.value = 2048;
+          if (hInp) hInp.value = 2048;
+        } else if (t.value === 'auto') {
+          if (wInp) wInp.value = 1600;
+          if (hInp) hInp.value = 0;
+        }
+      } else if (t.dataset.key === 'imageWidth' || t.dataset.key === 'imageHeight') {
+        const presetSelect = controls.querySelector('select[data-key="sizePreset"]');
+        if (presetSelect) presetSelect.value = 'custom';
+        config.sizePreset = 'custom';
+      }
       config[t.dataset.key] =
-        t.type === 'checkbox' ? t.checked : t.type === 'number' ? Number(t.value) : t.value;
+        t.type === 'checkbox'
+          ? t.checked
+          : t.type === 'number' || t.type === 'range'
+            ? Number(t.value)
+            : t.value;
     } else if (t.dataset.fact) {
       config.facts = config.facts.filter((id) => id !== t.dataset.fact);
       if (t.checked) config.facts.push(t.dataset.fact);
@@ -98,18 +227,61 @@ function initializePreview() {
       config.statIds = config.statIds.filter((x) => x !== id);
       if (t.checked) config.statIds.push(id);
     } else return;
+    if (
+      ['charPity', 'charGuaranteed', 'weaponPity', 'rollsLeft', 'monthCard'].includes(t.dataset.key)
+    ) {
+      updatePityDisplay('Tùy chỉnh thủ công');
+    }
     config = normalizeConfig(config, data);
     schedule();
   });
   controls.addEventListener('input', (e) => {
-    if (e.target.dataset.key && e.target.type === 'number' && e.target.value !== '') {
-      config[e.target.dataset.key] = Number(e.target.value);
-      config = normalizeConfig(config, data);
-      schedule();
+    const t = e.target;
+    if (t.dataset.key) {
+      if (t.type === 'range') {
+        const out = $(`val-${t.dataset.key}`);
+        if (out) out.textContent = t.value + (t.dataset.key === 'bgBlur' ? 'px' : '%');
+        config[t.dataset.key] = Number(t.value);
+        if (['charPity', 'weaponPity', 'rollsLeft', 'monthCard'].includes(t.dataset.key)) {
+          updatePityDisplay('Tùy chỉnh thủ công');
+        }
+        config = normalizeConfig(config, data);
+        schedule();
+      } else if (t.type === 'text') {
+        config[t.dataset.key] = t.value;
+        if (['charPity', 'weaponPity', 'rollsLeft', 'monthCard'].includes(t.dataset.key)) {
+          updatePityDisplay('Tùy chỉnh thủ công');
+        }
+        config = normalizeConfig(config, data);
+        schedule();
+      } else if (t.type === 'number' && t.value !== '') {
+        config[t.dataset.key] = Number(t.value);
+        if (['charLimit', 'weaponLimit', 'weaponRows', 'charRows'].includes(t.dataset.key)) {
+          if (t.dataset.key === 'weaponRows' && Number(t.value) > 0) config.weaponLimit = 0;
+          if (t.dataset.key === 'charRows' && Number(t.value) > 0) config.charLimit = 0;
+          const group = controls.querySelector(`.quick-pill-group[data-target="${t.dataset.key}"]`);
+          if (group) {
+            const val = Number(t.value);
+            group
+              .querySelectorAll('.quick-pill')
+              .forEach((p) => p.classList.toggle('active', Number(p.dataset.val) === val));
+          }
+        }
+        if (t.dataset.key === 'imageWidth' || t.dataset.key === 'imageHeight') {
+          const presetSelect = controls.querySelector('select[data-key="sizePreset"]');
+          if (presetSelect) presetSelect.value = 'custom';
+          config.sizePreset = 'custom';
+        }
+        if (['charPity', 'weaponPity', 'rollsLeft', 'monthCard'].includes(t.dataset.key)) {
+          updatePityDisplay('Tùy chỉnh thủ công');
+        }
+        config = normalizeConfig(config, data);
+        schedule();
+      }
     }
-    if (e.target.id === 'preview-fact-search') updateFacts();
-    if (e.target.id === 'preview-build-search') {
-      const q = e.target.value.trim().toLocaleLowerCase();
+    if (t.id === 'preview-fact-search') updateFacts();
+    if (t.id === 'preview-build-search') {
+      const q = t.value.trim().toLocaleLowerCase();
       document
         .querySelectorAll('[data-build-name]')
         .forEach((x) => (x.hidden = !x.dataset.buildName.includes(q)));
@@ -118,6 +290,37 @@ function initializePreview() {
   controls.addEventListener('click', (e) => {
     const b = e.target.closest('button');
     if (!b) return;
+    if (b.id === 'preview-pity-reload' || b.closest('#preview-pity-reload')) {
+      if (data?.role?.uid) {
+        fetchPityFromUid(data.role.uid);
+      }
+      return;
+    }
+    const pill = b.closest('.quick-pill');
+    if (pill) {
+      const group = pill.closest('.quick-pill-group');
+      if (group && group.dataset.target) {
+        const key = group.dataset.target;
+        const rawVal = pill.dataset.val;
+        const val =
+          rawVal === 'balanced' || rawVal === 'full'
+            ? rawVal
+            : Number.isFinite(Number(rawVal))
+              ? Number(rawVal)
+              : rawVal;
+        config[key] = val;
+        if (key === 'weaponRows' && val > 0) config.weaponLimit = 0;
+        if (key === 'charRows' && val > 0) config.charLimit = 0;
+        config = normalizeConfig(config, data);
+        group
+          .querySelectorAll('.quick-pill')
+          .forEach((p) => p.classList.toggle('active', p === pill));
+        const inp = controls.querySelector(`input[data-key="${key}"]`);
+        if (inp) inp.value = val;
+        schedule();
+        return;
+      }
+    }
     if (b.dataset.action === 'clear-facts') {
       config.facts = [];
       updateFacts();
@@ -163,10 +366,15 @@ function initializePreview() {
           weaponRows: 0,
           charLimit: 0,
           weaponLimit: 0,
-          charCols: 8,
-          weaponCols: 12,
+          charCols: 7,
+          weaponCols: 14,
+          charGridMode: 'balanced',
+          weaponGridMode: 'balanced',
+          weaponAlign: 'bottom',
           charSort: preset === 'vip' ? 'prestige' : 'rarity',
-          maps: preset === 'full',
+          maps: preset === 'full' || preset === 'compact',
+          mapStyle: preset === 'compact' ? 'compact' : 'classic',
+          wishBanner: true,
           builds: preset === 'build',
           facts:
             preset === 'full'
@@ -221,16 +429,24 @@ function initializePreview() {
     if (key === lastDataKey) return;
     lastDataKey = key;
     data = next;
-    const nextRole = `genshin.preview.v2.${next.role.uid}.${next.role.server}`;
+    const nextRole = `genshin.preview.v4.${next.role.uid}.${next.role.server}`;
     if (roleKey !== nextRole) {
       roleKey = nextRole;
       let saved;
       try {
-        saved = JSON.parse(localStorage.getItem(roleKey) || 'null');
+        saved = JSON.parse(
+          localStorage.getItem(roleKey) ||
+            localStorage.getItem(`genshin.preview.v3.${next.role.uid}.${next.role.server}`) ||
+            localStorage.getItem(`genshin.preview.v2.${next.role.uid}.${next.role.server}`) ||
+            'null',
+        );
+        if (saved && (saved.charCols === 8 || !saved.charCols)) saved.charCols = 7;
+        if (saved && (saved.weaponCols === 12 || !saved.weaponCols)) saved.weaponCols = 14;
       } catch {}
       config = normalizeConfig(saved ?? {}, next);
     } else config = normalizeConfig(config, next);
     setup();
+    if (next?.role?.uid) fetchPityFromUid(next.role.uid);
     if (visible) schedule();
   });
   window.dispatchEvent(new Event('showcase:request-data'));
@@ -260,6 +476,8 @@ function initializePreview() {
     hits = result.hits;
     ready = true;
     $('preview-download').disabled = false;
+    const copyBtn = $('preview-copy');
+    if (copyBtn) copyBtn.disabled = false;
     $('preview-loading').title = result.missing.join('\n');
     $('preview-loading').textContent = result.missing.length
       ? result.missing.length + ' ảnh chưa tải được. Đổi tùy chọn để thử lại.'
@@ -291,6 +509,33 @@ function initializePreview() {
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     }, 'image/png');
   });
+  const copyBtn = $('preview-copy');
+  if (copyBtn) {
+    copyBtn.addEventListener('click', () => {
+      if (!ready) return;
+      canvas.toBlob(async (blob) => {
+        if (!blob) {
+          $('preview-error').hidden = false;
+          $('preview-error').textContent = 'Chưa tạo được PNG để sao chép.';
+          return;
+        }
+        try {
+          await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+          const old = copyBtn.textContent;
+          copyBtn.textContent = '✓ Đã sao chép!';
+          copyBtn.classList.add('copy-success');
+          setTimeout(() => {
+            copyBtn.textContent = old;
+            copyBtn.classList.remove('copy-success');
+          }, 2500);
+        } catch {
+          $('preview-error').hidden = false;
+          $('preview-error').textContent =
+            'Trình duyệt chưa cho phép ghi vào Clipboard. Hãy dùng nút Tải ảnh PNG.';
+        }
+      }, 'image/png');
+    });
+  }
 }
 try {
   initializePreview();

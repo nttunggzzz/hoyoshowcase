@@ -38,18 +38,143 @@ export const PROPERTY_LABELS = {
   9: 'Phòng ngự %',
 };
 export const DEFAULT_STATS = [2000, 2001, 2002, 20, 22, 23, 28];
+export const ART_BACKGROUNDS = [
+  {
+    id: 'art-columbina',
+    name: 'Columbina (Hàn Sương Cổ Điển)',
+    url: '/assets/backgrounds/columbina-319f3efd.jpg',
+  },
+  { id: 'art-flins', name: 'Flins (Thần Bí U Tối)', url: '/assets/backgrounds/flins-d6d28443.jpg' },
+  { id: 'art-nefer', name: 'Nefer (Ảo Ảo Ma Mị)', url: '/assets/backgrounds/nefer-4e007746.jpg' },
+  {
+    id: 'art-zibai',
+    name: 'Zibai (Vàng Son Rực Rỡ)',
+    url: '/assets/backgrounds/zibai-40a00d1d.jpg',
+  },
+];
+export const THEMES = Object.freeze({
+  abyss: {
+    id: 'abyss',
+    name: 'Hoàng Gia Vực Sâu (Gold)',
+    panelFill: '#122438ea',
+    panelStroke: '#d9a74a',
+    borderLine: '#2a415d',
+    accent: '#f5d485',
+    textLight: '#f1eee5',
+    textMuted: '#bed0df',
+    badgeBg: '#1b344ecd',
+    badgeStroke: '#f1d58e',
+    glow: 'rgba(217, 167, 74, 0.28)',
+  },
+  hydro: {
+    id: 'hydro',
+    name: 'Thủy Triều Fontaine (Hydro)',
+    panelFill: '#0c2436f0',
+    panelStroke: '#38bdf8',
+    borderLine: '#1e506d',
+    accent: '#67e8f9',
+    textLight: '#f0f9ff',
+    textMuted: '#93c5fd',
+    badgeBg: '#13354ccd',
+    badgeStroke: '#38bdf8',
+    glow: 'rgba(56, 189, 248, 0.28)',
+  },
+  pyro: {
+    id: 'pyro',
+    name: 'Hỏa Diễm Natlan (Pyro)',
+    panelFill: '#261214f0',
+    panelStroke: '#f97316',
+    borderLine: '#662424',
+    accent: '#fbbf24',
+    textLight: '#fff1f2',
+    textMuted: '#fca5a5',
+    badgeBg: '#441d20cd',
+    badgeStroke: '#fb923c',
+    glow: 'rgba(249, 115, 22, 0.28)',
+  },
+  cryo: {
+    id: 'cryo',
+    name: 'Hàn Băng Snezhnaya (Cryo)',
+    panelFill: '#0f2233f0',
+    panelStroke: '#7dd3fc',
+    borderLine: '#2c4c68',
+    accent: '#bae6fd',
+    textLight: '#f8fafc',
+    textMuted: '#cbd5e1',
+    badgeBg: '#1b384ecd',
+    badgeStroke: '#7dd3fc',
+    glow: 'rgba(125, 211, 252, 0.28)',
+  },
+  electro: {
+    id: 'electro',
+    name: 'Lôi Điện Inazuma (Electro)',
+    panelFill: '#1e1330f0',
+    panelStroke: '#c084fc',
+    borderLine: '#4a2c73',
+    accent: '#f0abfc',
+    textLight: '#faf5ff',
+    textMuted: '#d8b4fe',
+    badgeBg: '#351b54cd',
+    badgeStroke: '#c084fc',
+    glow: 'rgba(192, 132, 252, 0.28)',
+  },
+  dendro: {
+    id: 'dendro',
+    name: 'Thảo Mộc Sumeru (Dendro)',
+    panelFill: '#0e241bf0',
+    panelStroke: '#4ade80',
+    borderLine: '#1b5336',
+    accent: '#bef264',
+    textLight: '#f0fdf4',
+    textMuted: '#86efac',
+    badgeBg: '#173c2ecd',
+    badgeStroke: '#4ade80',
+    glow: 'rgba(74, 222, 128, 0.28)',
+  },
+  geo: {
+    id: 'geo',
+    name: 'Nham Thạch Liyue (Geo)',
+    panelFill: '#241c10f0',
+    panelStroke: '#fbbf24',
+    borderLine: '#684d1e',
+    accent: '#fde047',
+    textLight: '#fefce8',
+    textMuted: '#fde68a',
+    badgeBg: '#3d2e1acd',
+    badgeStroke: '#fbbf24',
+    glow: 'rgba(251, 191, 36, 0.28)',
+  },
+  oled: {
+    id: 'oled',
+    name: 'OLED Điện Ảnh (Dark Cinema)',
+    panelFill: '#080c14f4',
+    panelStroke: '#52525b',
+    borderLine: '#27272a',
+    accent: '#e4e4e7',
+    textLight: '#fafafa',
+    textMuted: '#a1a1aa',
+    badgeBg: '#18181bcd',
+    badgeStroke: '#71717a',
+    glow: 'rgba(255, 255, 255, 0.15)',
+  },
+});
 export const DEFAULT_CONFIG = Object.freeze({
+  _v: 4,
   account: true,
   characters: true,
   weapons: true,
+  collectionHeader: false,
   charCount: true,
   weaponCount: true,
-  charCols: 8,
-  weaponCols: 12,
+  charCols: 7,
+  weaponCols: 14,
   charRows: 0,
   weaponRows: 0,
   charLimit: 0,
   weaponLimit: 0,
+  charGridMode: 'balanced',
+  weaponGridMode: 'balanced',
+  weaponAlign: 'bottom',
   charRarity: 'all',
   weaponRarity: 'all',
   charSort: 'prestige',
@@ -69,7 +194,26 @@ export const DEFAULT_CONFIG = Object.freeze({
   premium: true,
   c6: true,
   c6Size: 'large',
-  background: '2',
+  background: 'art-columbina',
+  bgBlur: 0,
+  bgDim: 30,
+  theme: 'abyss',
+  frameStyle: 'modern',
+  vignette: true,
+  cornerAccents: true,
+  artifactCv: true,
+  crownBadge: true,
+  signature: '',
+  code: '#1000',
+  watermark: '',
+  wishBanner: true,
+  wishPosition: 'above_weapon',
+  charPity: 68,
+  charGuaranteed: true,
+  weaponPity: 12,
+  rollsLeft: 154,
+  monthCard: 28,
+  mapStyle: 'classic',
   maps: false,
   facts: [],
   builds: false,
@@ -82,6 +226,9 @@ export const DEFAULT_CONFIG = Object.freeze({
   buildConstellations: true,
   buildFetter: false,
   width: 1600,
+  imageWidth: 1600,
+  imageHeight: 0,
+  sizePreset: 'auto',
 });
 const boolKeys = Object.keys(DEFAULT_CONFIG).filter((k) => typeof DEFAULT_CONFIG[k] === 'boolean');
 const enumValues = {
@@ -90,6 +237,14 @@ const enumValues = {
   charSort: ['prestige', 'rarity', 'level', 'name', 'constellation'],
   weaponSort: ['rarity', 'level', 'name', 'refinement'],
   c6Size: ['normal', 'large'],
+  mapStyle: ['square', 'compact', 'classic'],
+  theme: ['abyss', 'hydro', 'pyro', 'cryo', 'electro', 'dendro', 'geo', 'oled'],
+  frameStyle: ['modern', 'fantasy'],
+  charGridMode: ['balanced', 'full'],
+  weaponGridMode: ['balanced', 'full'],
+  weaponAlign: ['bottom', 'top'],
+  wishPosition: ['above_weapon', 'top_banner'],
+  sizePreset: ['auto', '1980x2040', '1920x1080', '2560x1440', '1080x1920', '2048x2048', 'custom'],
 };
 const limits = {
   charCols: [1, 12],
@@ -98,6 +253,14 @@ const limits = {
   weaponRows: [0, 100],
   charLimit: [0, 500],
   weaponLimit: [0, 500],
+  bgBlur: [0, 20],
+  bgDim: [0, 90],
+  charPity: [0, 90],
+  weaponPity: [0, 80],
+  rollsLeft: [0, 99999],
+  monthCard: [0, 365],
+  imageWidth: [800, 3840],
+  imageHeight: [0, 5000],
 };
 export const stars = (c) =>
   Number(c?.rarity) === 105 ? 5 : Math.min(5, Math.max(1, Number(c?.rarity) || 1));
@@ -118,11 +281,54 @@ export function normalizeConfig(raw = {}, model) {
   for (const key of boolKeys) if (typeof raw[key] === 'boolean') c[key] = raw[key];
   for (const [key, choices] of Object.entries(enumValues))
     if (choices.includes(raw[key])) c[key] = raw[key];
+  if (raw.mapStyle && ['square', 'compact', 'classic'].includes(raw.mapStyle)) {
+    c.mapStyle = raw.mapStyle;
+  } else if (raw._v === 4) {
+    c.mapStyle = 'square';
+  } else {
+    c.mapStyle = 'classic';
+  }
   for (const [key, [min, max]] of Object.entries(limits)) {
     const n = Number(raw[key]);
-    if (Number.isFinite(n)) c[key] = Math.max(min, Math.min(max, Math.floor(n)));
+    if (Number.isFinite(n)) {
+      if (raw._v !== 4 && key === 'charCols' && n === 8) {
+        c[key] = 7;
+      } else if (raw._v !== 4 && key === 'weaponCols' && n === 12) {
+        c[key] = 14;
+      } else {
+        c[key] = Math.max(min, Math.min(max, Math.floor(n)));
+      }
+    }
   }
   if ([1200, 1600, 2400, 3200].includes(Number(raw.width))) c.width = Number(raw.width);
+  if (raw.sizePreset === '1980x2040') {
+    c.imageWidth = 1980;
+    c.imageHeight = 2040;
+  } else if (raw.sizePreset === '1920x1080') {
+    c.imageWidth = 1920;
+    c.imageHeight = 1080;
+  } else if (raw.sizePreset === '2560x1440') {
+    c.imageWidth = 2560;
+    c.imageHeight = 1440;
+  } else if (raw.sizePreset === '1080x1920') {
+    c.imageWidth = 1080;
+    c.imageHeight = 1920;
+  } else if (raw.sizePreset === '2048x2048') {
+    c.imageWidth = 2048;
+    c.imageHeight = 2048;
+  } else if (raw.sizePreset === 'custom') {
+    if (Number.isFinite(Number(raw.imageWidth)))
+      c.imageWidth = Math.max(800, Math.min(3840, Math.floor(Number(raw.imageWidth))));
+    if (Number.isFinite(Number(raw.imageHeight)))
+      c.imageHeight = Math.max(0, Math.min(5000, Math.floor(Number(raw.imageHeight))));
+  } else {
+    c.sizePreset = 'auto';
+    c.imageWidth = c.width;
+    c.imageHeight = 0;
+  }
+  if (c.sizePreset !== 'auto') {
+    c.width = c.imageWidth;
+  }
   const ids = new Set((model?.characters ?? []).map((x) => Number(x.id))),
     facts = new Set((model?.previewFacts ?? []).map((x) => x.id));
   c.facts = Array.isArray(raw.facts)
@@ -141,11 +347,19 @@ export function normalizeConfig(raw = {}, model) {
   c.statIds = Array.isArray(raw.statIds)
     ? [...new Set(raw.statIds.map(Number).filter((x) => available.has(x)))]
     : DEFAULT_STATS.filter((x) => available.has(x));
+  if (typeof raw.code === 'string') c.code = raw.code.slice(0, 20);
+  if (typeof raw.watermark === 'string') c.watermark = raw.watermark.slice(0, 50);
+  if (typeof raw.signature === 'string') c.signature = raw.signature.slice(0, 50);
   const backgrounds = (model?.regions ?? []).filter((r) => r.background_image);
-  const wanted = String(raw.background ?? '2');
-  c.background = backgrounds.some((r) => String(r.id) === wanted)
-    ? wanted
-    : String(backgrounds[0]?.id ?? '');
+  const wanted = String(raw.background ?? DEFAULT_CONFIG.background);
+  const isArt =
+    ART_BACKGROUNDS.some((a) => a.id === wanted) ||
+    wanted.startsWith('data:image/') ||
+    wanted.startsWith('/assets/backgrounds/');
+  c.background =
+    isArt || backgrounds.some((r) => String(r.id) === wanted)
+      ? wanted
+      : String(backgrounds[0]?.id ?? 'art-columbina');
   return c;
 }
 export function sortCharacters(input, order) {
@@ -189,11 +403,18 @@ export function selectItems(model, c) {
             stars(b.weapon) - stars(a.weapon)
           : stars(b.weapon) - stars(a.weapon) || b.weapon.level - a.weapon.level,
   );
-  const cap = (list, limit, rows, cols) =>
-    list.slice(0, Math.min(limit || Infinity, rows ? rows * cols : Infinity));
+  const cap = (list, limit, rows, cols, mode) => {
+    let maxItems = Math.min(limit || Infinity, rows ? rows * cols : Infinity);
+    if (mode === 'balanced' && list.length >= cols) {
+      const allowed = Math.min(list.length, maxItems);
+      const rounded = Math.floor(allowed / cols) * cols;
+      maxItems = rounded > 0 ? rounded : maxItems;
+    }
+    return list.slice(0, maxItems);
+  };
   return {
-    characters: cap(characters, c.charLimit, c.charRows, c.charCols),
-    weapons: cap(weapons, c.weaponLimit, c.weaponRows, c.weaponCols),
+    characters: cap(characters, c.charLimit, c.charRows, c.charCols, c.charGridMode),
+    weapons: cap(weapons, c.weaponLimit, c.weaponRows, c.weaponCols, c.weaponGridMode),
     allCharacters: model.characters.length,
     allWeapons: model.characters.filter((x) => x.weapon?.id).length,
   };
@@ -219,16 +440,62 @@ export function planPreview(model, c) {
       gridWidth: cols * cellWidth + (cols - 1) * gap,
     };
   };
+  const isCustomSize = c.sizePreset && c.sizePreset !== 'auto';
   const both = charOn && weaponOn,
-    charWidth = both ? 552 : 1560,
-    weaponWidth = both ? 988 : 1560;
-  const identity = c.name || c.uid || c.ar || c.server || c.avatar || c.updated;
+    baseW = isCustomSize && c.imageWidth > 0 ? c.imageWidth : 1600,
+    availW = baseW - 40,
+    charWidth = both ? (baseW === 1600 ? 566 : Math.round((baseW - 60) * 0.368)) : availW,
+    weaponWidth = both ? (baseW === 1600 ? 974 : baseW - 60 - charWidth) : availW,
+    weaponX = both ? charWidth + 40 : 20;
+  const identity =
+    c.name || c.uid || c.ar || c.server || c.avatar || c.updated || c.code || c.wishBanner;
   const factRows = Math.ceil(facts.length / (both ? 3 : 5));
-  const bannerHeight = Math.max(identity ? 185 : 80, 90 + factRows * 77);
+  const hasTopWish = c.wishBanner && (c.wishPosition === 'top_banner' || !both);
+  let bannerHeight = Math.max(
+    identity ? (hasTopWish ? 185 : facts.length ? 150 : 100) : 80,
+    facts.length ? 90 + factRows * 77 : 0,
+  );
+  const mapCount = c.maps
+    ? model.worldDisplay?.length || model.regions.filter((x) => !x.parent_id).length
+    : 0;
+  let mapSquare = null;
+  let mapHeight = 0;
+  const isSquareMap = c.maps && c.mapStyle === 'square';
+  if (isSquareMap) {
+    const boxH = Math.max(bannerHeight, 235);
+    if (both) {
+      mapSquare = { x: 20, y: 20, width: charWidth, height: boxH };
+      bannerHeight = boxH;
+      mapHeight = 0;
+    } else {
+      const squareW = Math.min(600, availW);
+      mapSquare = { x: Math.round((baseW - squareW) / 2), y: 20, width: squareW, height: 235 };
+      mapHeight = 255;
+    }
+  } else if (c.maps) {
+    mapHeight =
+      c.mapStyle === 'compact'
+        ? 75 + Math.ceil(mapCount / 3) * 52
+        : 100 + Math.ceil(mapCount / 3) * 200;
+  }
   const charGrid = grid(selected.characters.length, c.charCols, charWidth),
     weaponGrid = grid(selected.weapons.length, c.weaponCols, weaponWidth);
-  const charPanel = { x: 20, y: both ? 110 : bannerHeight + 38, width: charWidth },
-    weaponPanel = { x: both ? 592 : 20, y: bannerHeight + 38, width: weaponWidth };
+  const charPanelY = both
+    ? mapSquare
+      ? bannerHeight + 20
+      : c.collectionHeader
+        ? 110
+        : 20
+    : bannerHeight + 38;
+  const charPanel = { x: 20, y: charPanelY, width: charWidth };
+  const charBottom = charOn ? charPanel.y + charGrid.height : bannerHeight + 38;
+  const wishHeight = c.wishBanner && c.wishPosition === 'above_weapon' && both ? 122 : 0;
+  const minWeaponTop = bannerHeight + (mapSquare ? 20 : 38) + wishHeight;
+  const weaponTopY =
+    both && c.weaponAlign === 'bottom'
+      ? Math.max(minWeaponTop, charBottom - weaponGrid.height)
+      : minWeaponTop;
+  const weaponPanel = { x: weaponX, y: weaponTopY, width: weaponWidth };
   const boardHeight = c.account
     ? Math.max(
         20 + bannerHeight,
@@ -248,18 +515,17 @@ export function planPreview(model, c) {
       28
     );
   });
-  const mapCount = c.maps
-      ? model.worldDisplay?.length || model.regions.filter((x) => !x.parent_id).length
-      : 0,
-    mapHeight = mapCount ? 100 + Math.ceil(mapCount / 3) * 200 : 0;
   const height = Math.ceil(mapHeight + boardHeight + buildHeights.reduce((a, b) => a + b, 0));
   const scale = c.width / 1600;
+  const autoOutputHeight = Math.ceil(height * scale);
+  const outputWidth = isCustomSize && c.imageWidth > 0 ? c.imageWidth : c.width;
+  const outputHeight = isCustomSize && c.imageHeight > 0 ? c.imageHeight : autoOutputHeight;
   const error =
     c.builds && !buildCharacters.length
       ? 'Chọn ít nhất một nhân vật để kèm build.'
       : height === 0
         ? 'Chọn ít nhất một phần: tổng quan, khám phá hoặc build.'
-        : height * scale > 16000 || c.width * height * scale > 32000000
+        : height * scale > 16000 || outputWidth * outputHeight > 32000000
           ? 'Ảnh quá lớn. Giảm số hàng/nhân vật hoặc chọn độ phân giải thấp hơn.'
           : null;
   return {
@@ -271,16 +537,18 @@ export function planPreview(model, c) {
     bannerHeight,
     boardHeight,
     mapHeight,
+    mapSquare,
     buildCharacters,
     buildHeights,
     height,
     width: 1600,
-    outputWidth: c.width,
-    outputHeight: Math.ceil(height * scale),
+    outputWidth,
+    outputHeight,
     scale,
+    baseW,
     error,
     charPanel,
     weaponPanel,
-    banner: { x: both ? 592 : 20, y: 20, width: both ? 988 : 1560 },
+    banner: { x: both ? weaponX : 20, y: 20, width: both ? weaponWidth : availW },
   };
 }

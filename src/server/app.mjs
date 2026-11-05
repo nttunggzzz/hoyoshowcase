@@ -2,6 +2,7 @@ import http from 'node:http';
 import { Transport, ApiError, safeStatus } from './hoyolab/client.mjs';
 import { stripCredentials } from './collection/collector.mjs';
 import { showcaseModel } from './models/showcase.mjs';
+import { getPityDataForUid } from './pity.mjs';
 import { createGameMedia } from './media/game-media.mjs';
 import { createSessionStore } from './session-store.mjs';
 import { HttpError, SESSION_TTL_MS, sameSecret, send, readJsonBody } from './http.mjs';
@@ -42,7 +43,8 @@ export function createApp({
       if (req.headers.host !== host)
         throw new HttpError(403, 'Chỉ chấp nhận địa chỉ loopback chính xác.');
       const url = new URL(req.url, origin);
-      if (url.search) throw new HttpError(400, 'Không gửi credential qua query string.');
+      if (url.search && url.pathname.startsWith('/api/'))
+        throw new HttpError(400, 'Không gửi credential qua query string.');
 
       if (req.method === 'GET') {
         if (url.pathname.startsWith('/media/')) {
@@ -62,6 +64,11 @@ export function createApp({
           return send(res, 200, saved, 'application/json; charset=utf-8', {
             'Content-Disposition': `attachment; filename="battle-chronicle-${saved.role.uid}.json"`,
           });
+        }
+        if (url.pathname.startsWith('/api/pity/')) {
+          const uid = url.pathname.slice('/api/pity/'.length);
+          const result = await getPityDataForUid(uid);
+          return send(res, 200, result);
         }
         if (await serveStatic(res, url.pathname)) return;
       }

@@ -1,7 +1,8 @@
 const loaded = new Map();
 export function gameImageSource(url) {
   if (typeof url !== 'string') return '';
-  if (/^\/assets\/native\/[A-Za-z0-9_.-]+\.png$/.test(url)) return url;
+  if (/^\/assets\/(native|backgrounds)\/[A-Za-z0-9_.-]+\.(png|jpg|jpeg)$/.test(url)) return url;
+  if (url.startsWith('data:image/')) return url;
   try {
     const u = new URL(url);
     return u.protocol === 'https:' &&

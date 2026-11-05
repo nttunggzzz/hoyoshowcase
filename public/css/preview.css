@@ -434,3 +434,279 @@
     padding: 10px;
   }
 }
+
+/* UI/UX Pro Max Customizer Additions */
+.preview-slider {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 4px 0;
+}
+.slider-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  color: var(--muted);
+}
+.slider-row output {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+  background: rgba(220, 180, 100, 0.1);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+.preview-slider input[type='range'] {
+  width: 100%;
+  height: 6px;
+  accent-color: var(--accent);
+  border-radius: 3px;
+  background: var(--bg);
+  cursor: pointer;
+  padding: 0;
+  margin: 2px 0;
+}
+.preview-text-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 10px;
+  color: var(--muted);
+}
+.preview-text-field input {
+  width: 100%;
+  font-size: 11px;
+}
+.preview-upload-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  padding: 12px;
+  text-align: center;
+  margin: 4px 0 8px;
+}
+.upload-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+.upload-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(220, 180, 100, 0.08);
+}
+.upload-hint {
+  display: block;
+  font-size: 9px;
+  color: var(--muted);
+  margin-top: 6px;
+  line-height: 1.4;
+}
+.check-guaranteed {
+  margin-top: 20px;
+  font-size: 11px;
+}
+.button.copy-success {
+  background: rgba(34, 197, 94, 0.15) !important;
+  border-color: #22c55e !important;
+  color: #4ade80 !important;
+}
+
+/* Quick count selection pills */
+.limit-picker-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 6px 0 10px;
+}
+.limit-label {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 500;
+}
+.quick-pill-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 4px 0 8px;
+}
+.quick-pill {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.quick-pill:hover {
+  border-color: var(--accent);
+  color: var(--ink);
+  background: rgba(220, 180, 100, 0.08);
+}
+.quick-pill.active {
+  background: rgba(220, 180, 100, 0.18);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+/* UI/UX Pro Max - Pity Auto Box & Status Card */
+.pity-auto-box {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+  margin: 6px 0 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.pity-badge-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+}
+.pity-chip {
+  background: var(--panel-2);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 6px;
+}
+.pity-chip-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+}
+.pity-chip-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+}
+.pity-chip-main {
+  display: flex;
+  align-items: baseline;
+}
+.pity-chip-val {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--ink);
+  font-family: var(--font-mono, monospace);
+  white-space: nowrap;
+}
+.pity-chip-sub {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+.pity-chip-sub.guaranteed {
+  background: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+.pity-chip-sub.fifty {
+  background: rgba(234, 179, 8, 0.15);
+  color: #facc15;
+  border: 1px solid rgba(234, 179, 8, 0.3);
+}
+.pity-source-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.4;
+  padding: 5px 8px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px dashed rgba(255, 255, 255, 0.08);
+  border-radius: 5px;
+}
+.pity-icon-svg {
+  flex-shrink: 0;
+  stroke: var(--accent);
+}
+.pity-actions-row {
+  display: flex;
+  gap: 8px;
+}
+.pity-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+}
+.pity-action-btn:hover {
+  transform: translateY(-1px);
+}
+.pity-action-btn:active {
+  transform: scale(0.98);
+}
+.pity-action-btn.primary {
+  flex: 1;
+  background: rgba(220, 180, 100, 0.12);
+  border: 1px solid var(--accent);
+  color: var(--accent);
+}
+.pity-action-btn.primary:hover {
+  background: rgba(220, 180, 100, 0.22);
+}
+.pity-action-btn.secondary {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  color: var(--muted);
+}
+.pity-action-btn.secondary:hover {
+  border-color: var(--muted);
+  color: var(--ink);
+}
+.manual-pity-details {
+  border: 1px dashed var(--line);
+  border-radius: 6px;
+  padding: 6px 10px;
+  margin-top: 4px;
+}
+.manual-pity-details > summary {
+  font-size: 11px;
+  color: var(--muted);
+  cursor: pointer;
+  font-weight: 500;
+  user-select: none;
+  padding: 2px 0;
+  transition: color 0.15s ease;
+}
+.manual-pity-details > summary:hover {
+  color: var(--ink);
+}
+.manual-pity-details[open] {
+  background: rgba(255, 255, 255, 0.01);
+  padding: 8px 10px 10px;
+}

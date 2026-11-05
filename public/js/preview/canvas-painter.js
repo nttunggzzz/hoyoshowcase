@@ -4,13 +4,78 @@ export function createCanvasPainter(ctx) {
     ctx.beginPath();
     ctx.roundRect(x, y, w, h, r);
   }
-  function panel(x, y, w, h, { fill = '#152538e0', stroke = '#c8ad75', line = 1.5 } = {}) {
+  function chiseled(x, y, w, h, c = 8) {
+    ctx.beginPath();
+    ctx.moveTo(x + c, y);
+    ctx.lineTo(x + w - c, y);
+    ctx.lineTo(x + w, y + c);
+    ctx.lineTo(x + w, y + h - c);
+    ctx.lineTo(x + w - c, y + h);
+    ctx.lineTo(x + c, y + h);
+    ctx.lineTo(x, y + h - c);
+    ctx.lineTo(x, y + c);
+    ctx.closePath();
+  }
+  function panel(
+    x,
+    y,
+    w,
+    h,
+    { fill = '#152538e0', stroke = '#c8ad75', line = 1.5, style = 'modern' } = {},
+  ) {
     ctx.fillStyle = fill;
-    round(x, y, w, h);
+    if (style === 'fantasy') {
+      chiseled(x, y, w, h, 10);
+    } else {
+      round(x, y, w, h);
+    }
     ctx.fill();
     ctx.strokeStyle = stroke;
     ctx.lineWidth = line;
     ctx.stroke();
+  }
+  function cornerBrackets(x, y, w, h, color = '#f5d485', size = 12) {
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.5;
+    // Top-left
+    ctx.beginPath();
+    ctx.moveTo(x, y + size);
+    ctx.lineTo(x, y);
+    ctx.lineTo(x + size, y);
+    ctx.stroke();
+    // Top-right
+    ctx.beginPath();
+    ctx.moveTo(x + w - size, y);
+    ctx.lineTo(x + w, y);
+    ctx.lineTo(x + w, y + size);
+    ctx.stroke();
+    // Bottom-left
+    ctx.beginPath();
+    ctx.moveTo(x, y + h - size);
+    ctx.lineTo(x, y + h);
+    ctx.lineTo(x + size, y + h);
+    ctx.stroke();
+    // Bottom-right
+    ctx.beginPath();
+    ctx.moveTo(x + w - size, y + h);
+    ctx.lineTo(x + w, y + h);
+    ctx.lineTo(x + w, y + h - size);
+    ctx.stroke();
+    ctx.restore();
+  }
+  function vignette(w, h, strength = 0.45) {
+    ctx.save();
+    const cx = w / 2,
+      cy = h / 2,
+      radius = Math.max(cx, cy) * 1.1;
+    const grad = ctx.createRadialGradient(cx, cy, radius * 0.45, cx, cy, radius);
+    grad.addColorStop(0, 'rgba(0, 0, 0, 0)');
+    grad.addColorStop(0.7, `rgba(0, 0, 0, ${strength * 0.4})`);
+    grad.addColorStop(1, `rgba(0, 0, 0, ${strength})`);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
+    ctx.restore();
   }
   function text(value, x, y, size = 16, color = '#f1eee5', weight = 500, align = 'left', maxWidth) {
     ctx.font = `${weight} ${size}px Outfit, sans-serif`;
@@ -44,5 +109,5 @@ export function createCanvasPainter(ctx) {
     );
   }
 
-  return { round, panel, text, cover, contain };
+  return { round, chiseled, panel, cornerBrackets, vignette, text, cover, contain };
 }

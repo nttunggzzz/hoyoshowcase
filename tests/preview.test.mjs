@@ -33,7 +33,16 @@ const model = () => ({
 test('visible row/item limits preserve full account totals and separate equipped copies', () => {
   const m = model(),
     c = normalizeConfig(
-      { charCols: 4, charRows: 2, charLimit: 12, weaponCols: 6, weaponRows: 2, weaponLimit: 10 },
+      {
+        charCols: 4,
+        charRows: 2,
+        charLimit: 12,
+        weaponCols: 6,
+        weaponRows: 2,
+        weaponLimit: 10,
+        charGridMode: 'full',
+        weaponGridMode: 'full',
+      },
       m,
     ),
     p = selectItems(m, c);
@@ -41,7 +50,17 @@ test('visible row/item limits preserve full account totals and separate equipped
   assert.equal(p.weapons.length, 10);
   assert.equal(p.allCharacters, 65);
   assert.equal(p.allWeapons, 65);
-  assert.equal(selectItems(m, normalizeConfig({ charRarity: 'five' }, m)).characters.length, 25);
+  assert.equal(
+    selectItems(m, normalizeConfig({ charRarity: 'five', charGridMode: 'full' }, m)).characters
+      .length,
+    25,
+  );
+  const balanced = selectItems(
+    m,
+    normalizeConfig({ charGridMode: 'balanced', weaponGridMode: 'balanced' }, m),
+  );
+  assert.equal(balanced.characters.length, 63); // 9 full rows of 7
+  assert.equal(balanced.weapons.length, 56); // 4 full rows of 14
 });
 test('five-star C6 gets prestige priority over four-star C6; Aloy retains five-star rarity', () => {
   const m = model(),
@@ -148,6 +167,55 @@ test('maximum six builds and property deduplication preserve selected final valu
     }),
     [{ property_type: 20, final: '64.8%' }],
   );
+});
+test('theme and aesthetic customization options normalize safely', () => {
+  const m = model(),
+    c = normalizeConfig(
+      {
+        theme: 'pyro',
+        frameStyle: 'fantasy',
+        vignette: false,
+        cornerAccents: true,
+        artifactCv: true,
+        crownBadge: true,
+        signature: 'Main Hu Tao C6',
+        charGridMode: 'balanced',
+        weaponGridMode: 'full',
+        weaponAlign: 'bottom',
+        wishPosition: 'above_weapon',
+        collectionHeader: false,
+      },
+      m,
+    );
+  assert.equal(c.theme, 'pyro');
+  assert.equal(c.frameStyle, 'fantasy');
+  assert.equal(c.vignette, false);
+  assert.equal(c.cornerAccents, true);
+  assert.equal(c.artifactCv, true);
+  assert.equal(c.crownBadge, true);
+  assert.equal(c.signature, 'Main Hu Tao C6');
+  assert.equal(c.charGridMode, 'balanced');
+  assert.equal(c.weaponGridMode, 'full');
+  assert.equal(c.weaponAlign, 'bottom');
+  assert.equal(c.wishPosition, 'above_weapon');
+  assert.equal(c.collectionHeader, false);
+  // Fallback on invalid enum value
+  const fallback = normalizeConfig(
+    {
+      theme: 'invalid_theme',
+      frameStyle: 'round',
+      charGridMode: 'bad',
+      weaponAlign: 'center',
+      wishPosition: 'nowhere',
+    },
+    m,
+  );
+  assert.equal(fallback.theme, 'abyss');
+  assert.equal(fallback.frameStyle, 'modern');
+  assert.equal(fallback.charGridMode, 'balanced');
+  assert.equal(fallback.weaponAlign, 'bottom');
+  assert.equal(fallback.wishPosition, 'above_weapon');
+  assert.equal(fallback.weaponAlign, 'bottom');
 });
 test('Chronicle toggles distinguish locked/missing records from real zero and false values', () => {
   const facts = previewFacts({

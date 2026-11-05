@@ -15,7 +15,7 @@ const DOCUMENTS = new Set([
   'styles.css',
 ]);
 const CSP =
-  "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' https://act-webstatic.hoyoverse.com https://fastcdn.hoyoverse.com; font-src 'self'; connect-src 'self'; frame-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'";
+  "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://act-webstatic.hoyoverse.com https://fastcdn.hoyoverse.com; font-src 'self'; connect-src 'self'; frame-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'";
 const CAPTCHA_CSP =
   "default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.geetest.com https://*.geevisit.com https://*.geetest.cn https://*.captchami.com; style-src 'unsafe-inline' https://*.geetest.com https://*.geevisit.com; img-src data: https://*.geetest.com https://*.geevisit.com https://*.geetest.cn https://*.captchami.com; connect-src https://*.geetest.com https://*.geevisit.com https://*.geetest.cn https://*.captchami.com; frame-src https://*.geetest.com https://*.geevisit.com https://*.captchami.com; base-uri 'none'; form-action 'none'; frame-ancestors 'self'";
 const MIME = {
@@ -24,6 +24,8 @@ const MIME = {
   '.mjs': 'text/javascript; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
   '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
   '.ttf': 'font/ttf',
   '.json': 'application/json; charset=utf-8',
   '.txt': 'text/plain; charset=utf-8',
@@ -62,8 +64,14 @@ export async function serveStatic(res, pathname) {
     const type = MIME[extension];
     const headers = { 'Content-Security-Policy': pathname === '/captcha' ? CAPTCHA_CSP : CSP };
     if (pathname === '/captcha') headers['X-Frame-Options'] = 'SAMEORIGIN';
-    if (extension === '.png' || extension === '.ttf')
+    if (
+      extension === '.png' ||
+      extension === '.ttf' ||
+      extension === '.jpg' ||
+      extension === '.jpeg'
+    )
       headers['Cache-Control'] = 'public, max-age=86400';
+    else headers['Cache-Control'] = 'no-cache, no-store, must-revalidate';
     if (extension === '.json') {
       return (send(res, 200, JSON.parse(data.toString('utf8')), type, headers), true);
     }

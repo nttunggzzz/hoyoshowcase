@@ -1,6 +1,7 @@
 import * as core from '../hoyolab/client.mjs';
 import * as collector from '../collection/collector.mjs';
 import { showcaseModel } from '../models/showcase.mjs';
+import { getPityDataForUid } from '../pity.mjs';
 import { HttpError } from '../http.mjs';
 
 /** Session-scoped operations. HTTP validation belongs to app.mjs. */
@@ -91,6 +92,9 @@ export async function dispatchApi(pathname, input, c, { publishSnapshot, onPersi
       break;
     case '/api/evidence':
       result = { format: 'genshin-insights-evidence-v1', events: c.transport.audit };
+      break;
+    case '/api/pity':
+      result = await getPityDataForUid(String(input.uid || ''));
       break;
     case '/api/reset':
       core.resetCredentials(c);
