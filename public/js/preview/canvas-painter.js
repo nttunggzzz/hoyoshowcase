@@ -78,14 +78,20 @@ export function createCanvasPainter(ctx) {
     ctx.restore();
   }
   function text(value, x, y, size = 16, color = '#f1eee5', weight = 500, align = 'left', maxWidth) {
-    ctx.font = `${weight} ${size}px Outfit, sans-serif`;
     ctx.fillStyle = color;
     ctx.textAlign = align;
-    const str = String(value ?? '');
-    if (maxWidth) {
-      while (ctx.measureText(str).width > maxWidth && size > 10) {
+    let str = String(value ?? '');
+    ctx.font = `${weight} ${size}px Outfit, sans-serif`;
+    if (maxWidth && Number.isFinite(maxWidth)) {
+      while (ctx.measureText(str).width > maxWidth && size > 9) {
         size--;
         ctx.font = `${weight} ${size}px Outfit, sans-serif`;
+      }
+      if (ctx.measureText(str).width > maxWidth) {
+        while (str.length > 1 && ctx.measureText(str + '…').width > maxWidth) {
+          str = str.slice(0, -1);
+        }
+        str += '…';
       }
     }
     ctx.fillText(str, x, y);

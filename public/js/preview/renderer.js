@@ -630,10 +630,10 @@ export async function renderAccountPreview({
       const iconSize = Math.min(22, rowH - 8);
       contain(art(r.icon), rx + 4, ry + Math.round((rowH - iconSize) / 2), iconSize, iconSize);
 
-      const nameW = Math.max(50, Math.round(colW * 0.4));
+      const nameW = Math.max(48, Math.floor(colW * 0.38));
       text(
         r.name,
-        rx + iconSize + 8,
+        rx + iconSize + 6,
         ry + Math.round(rowH / 2) + 4,
         11,
         isComplete ? '#ffffff' : '#dbe5f0',
@@ -654,11 +654,11 @@ export async function renderAccountPreview({
         'right',
       );
 
-      const barX = rx + iconSize + 10 + nameW;
+      const barX = rx + iconSize + 8 + nameW;
       const barRight = pctX - 38;
-      const barW = Math.max(16, barRight - barX);
+      const barW = Math.max(14, barRight - barX);
       const barY = ry + Math.round((rowH - 4) / 2);
-      if (barW > 16) {
+      if (barW > 14) {
         round(barX, barY, barW, 4, 2);
         ctx.fillStyle = '#172b3f';
         ctx.fill();
