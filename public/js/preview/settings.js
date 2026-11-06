@@ -409,7 +409,7 @@ export function createPreviewSettings({ controls, getData, getConfig, label }) {
               </div>
             </div>
             <div class="preview-number-grid">
-              ${input('weaponRows', 'Số hàng ngang vũ khí', 0, 20, '0 = tất cả')}${input('weaponCols', 'Số cột mỗi hàng', 1, 16)}
+              ${input('weaponRows', 'Số hàng ngang vũ khí', 0, 20, '0 = tất cả')}${input('weaponCols', 'Số cột mỗi hàng', 1, 24)}
             </div>
             ${select('weaponSort', 'Sắp xếp vũ khí', [
               ['rarity', 'Độ hiếm: 5 sao -> 4 sao'],

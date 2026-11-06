@@ -170,26 +170,31 @@ function initializePreview() {
         if (opt) opt.style.display = t.checked ? 'block' : 'none';
       }
       if (t.dataset.key === 'sizePreset') {
-        const wInp = controls.querySelector('input[data-key="imageWidth"]');
-        const hInp = controls.querySelector('input[data-key="imageHeight"]');
-        if (t.value === '1980x2040') {
-          if (wInp) wInp.value = 1980;
-          if (hInp) hInp.value = 2040;
-        } else if (t.value === '1920x1080') {
-          if (wInp) wInp.value = 1920;
-          if (hInp) hInp.value = 1080;
-        } else if (t.value === '2560x1440') {
-          if (wInp) wInp.value = 2560;
-          if (hInp) hInp.value = 1440;
-        } else if (t.value === '1080x1920') {
-          if (wInp) wInp.value = 1080;
-          if (hInp) hInp.value = 1920;
-        } else if (t.value === '2048x2048') {
-          if (wInp) wInp.value = 2048;
-          if (hInp) hInp.value = 2048;
-        } else if (t.value === 'auto') {
-          if (wInp) wInp.value = 1600;
-          if (hInp) hInp.value = 0;
+        const presets = {
+          '1980x2040': { w: 1980, h: 2040, charCols: 8, weaponCols: 15, mapStyle: 'square' },
+          '1920x1080': { w: 1920, h: 1080, charCols: 9, weaponCols: 16, mapStyle: 'square' },
+          '2560x1440': { w: 2560, h: 1440, charCols: 10, weaponCols: 18, mapStyle: 'square' },
+          '1080x1920': { w: 1080, h: 1920, charCols: 6, weaponCols: 11, mapStyle: 'square' },
+          '2048x2048': { w: 2048, h: 2048, charCols: 8, weaponCols: 16, mapStyle: 'square' },
+          auto: { w: 1600, h: 0, charCols: 7, weaponCols: 14, mapStyle: 'classic' },
+        };
+        const p = presets[t.value];
+        if (p) {
+          const wInp = controls.querySelector('input[data-key="imageWidth"]');
+          const hInp = controls.querySelector('input[data-key="imageHeight"]');
+          const charColsInp = controls.querySelector('input[data-key="charCols"]');
+          const weaponColsInp = controls.querySelector('input[data-key="weaponCols"]');
+          const mapStyleSel = controls.querySelector('select[data-key="mapStyle"]');
+          if (wInp) wInp.value = p.w;
+          if (hInp) hInp.value = p.h;
+          if (charColsInp) charColsInp.value = p.charCols;
+          if (weaponColsInp) weaponColsInp.value = p.weaponCols;
+          if (mapStyleSel && p.mapStyle) mapStyleSel.value = p.mapStyle;
+          config.imageWidth = p.w;
+          config.imageHeight = p.h;
+          config.charCols = p.charCols;
+          config.weaponCols = p.weaponCols;
+          if (p.mapStyle) config.mapStyle = p.mapStyle;
         }
       } else if (t.dataset.key === 'imageWidth' || t.dataset.key === 'imageHeight') {
         const presetSelect = controls.querySelector('select[data-key="sizePreset"]');

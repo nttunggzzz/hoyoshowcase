@@ -248,7 +248,7 @@ const enumValues = {
 };
 const limits = {
   charCols: [1, 12],
-  weaponCols: [1, 16],
+  weaponCols: [1, 24],
   charRows: [0, 100],
   weaponRows: [0, 100],
   charLimit: [0, 500],
@@ -304,18 +304,28 @@ export function normalizeConfig(raw = {}, model) {
   if (raw.sizePreset === '1980x2040') {
     c.imageWidth = 1980;
     c.imageHeight = 2040;
+    if (raw.charCols == null) c.charCols = 8;
+    if (raw.weaponCols == null) c.weaponCols = 15;
   } else if (raw.sizePreset === '1920x1080') {
     c.imageWidth = 1920;
     c.imageHeight = 1080;
+    if (raw.charCols == null) c.charCols = 9;
+    if (raw.weaponCols == null) c.weaponCols = 16;
   } else if (raw.sizePreset === '2560x1440') {
     c.imageWidth = 2560;
     c.imageHeight = 1440;
+    if (raw.charCols == null) c.charCols = 10;
+    if (raw.weaponCols == null) c.weaponCols = 18;
   } else if (raw.sizePreset === '1080x1920') {
     c.imageWidth = 1080;
     c.imageHeight = 1920;
+    if (raw.charCols == null) c.charCols = 6;
+    if (raw.weaponCols == null) c.weaponCols = 11;
   } else if (raw.sizePreset === '2048x2048') {
     c.imageWidth = 2048;
     c.imageHeight = 2048;
+    if (raw.charCols == null) c.charCols = 8;
+    if (raw.weaponCols == null) c.weaponCols = 16;
   } else if (raw.sizePreset === 'custom') {
     if (Number.isFinite(Number(raw.imageWidth)))
       c.imageWidth = Math.max(800, Math.min(3840, Math.floor(Number(raw.imageWidth))));
@@ -443,8 +453,16 @@ export function planPreview(model, c) {
   const isCustomSize = c.sizePreset && c.sizePreset !== 'auto';
   const both = charOn && weaponOn,
     baseW = isCustomSize && c.imageWidth > 0 ? c.imageWidth : 1600,
-    availW = baseW - 40,
-    charWidth = both ? (baseW === 1600 ? 566 : Math.round((baseW - 60) * 0.368)) : availW,
+    availW = baseW - 40;
+  let charRatio = 0.368;
+  if (baseW >= 2400) {
+    charRatio = 0.45;
+  } else if (baseW >= 1800) {
+    charRatio = 0.44;
+  } else if (baseW <= 1200) {
+    charRatio = 0.48;
+  }
+  const charWidth = both ? (baseW === 1600 ? 566 : Math.round((baseW - 60) * charRatio)) : availW,
     weaponWidth = both ? (baseW === 1600 ? 974 : baseW - 60 - charWidth) : availW,
     weaponX = both ? charWidth + 40 : 20;
   const identity =
@@ -520,7 +538,10 @@ export function planPreview(model, c) {
   const scale = isCustomSize ? 1 : c.width / 1600;
   const autoOutputHeight = Math.ceil(height * scale);
   const outputWidth = isCustomSize && c.imageWidth > 0 ? c.imageWidth : c.width;
-  const outputHeight = isCustomSize && c.imageHeight > 0 ? c.imageHeight : autoOutputHeight;
+  const outputHeight =
+    isCustomSize && c.imageHeight > 0
+      ? Math.max(c.imageHeight, autoOutputHeight)
+      : autoOutputHeight;
   const error =
     c.builds && !buildCharacters.length
       ? 'Chọn ít nhất một nhân vật để kèm build.'
