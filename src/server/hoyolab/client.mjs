@@ -786,3 +786,52 @@ export function safeStatus(c) {
     otpPending: !!c.flow?.ticket,
   };
 }
+
+export async function redeemCode(c, cdkey, targetUid, targetRegion) {
+  demand(typeof cdkey === 'string' && cdkey.trim().length > 0, 'Vui lòng nhập mã đổi quà.');
+  const cleanCode = cdkey.trim();
+  const uid = String(targetUid || c.selected?.uid || c.roles?.[0]?.uid || '');
+  demand(uid.length > 0, 'Cần có UID nhân vật để nhận quà.');
+  const region = targetRegion || c.selected?.server || c.roles?.[0]?.server || uidServer(uid);
+  demand(region, 'Cần máy chủ của tài khoản.');
+
+  demand(
+    c.cookies && (c.cookies.cookie_token_v2 || c.cookies.cookie_token || c.cookies.ltoken_v2),
+    'Cần đăng nhập tài khoản HoYoLAB hoặc nạp cookie để đổi mã quà tặng.',
+  );
+
+  const params = {
+    uid,
+    region,
+    cdkey: cleanCode,
+    game_biz: 'hk4e_global',
+    lang: 'vi',
+  };
+
+  const headers = {
+    Cookie: cookieHeader(c.cookies, LAB_KEYS),
+    Origin: 'https://genshin.hoyoverse.com',
+    Referer: 'https://genshin.hoyoverse.com/',
+  };
+
+  const res = await c.transport.request('redeem', {
+    params,
+    headers,
+    retryRead: false,
+  });
+
+  const json = res.json || {};
+  const isOk = json.retcode === 0;
+  return {
+    ok: isOk,
+    retcode: json.retcode,
+    message:
+      json.message ||
+      (isOk
+        ? 'Đổi thành công! Phần thưởng đã gửi vào hòm thư trong game.'
+        : 'Không thể đổi mã quà tặng.'),
+    code: cleanCode,
+    uid,
+    region,
+  };
+}

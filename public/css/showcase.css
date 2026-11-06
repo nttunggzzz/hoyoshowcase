@@ -2129,3 +2129,278 @@ dialog::backdrop {
 .native-region:after {
   background: linear-gradient(100deg, #142b43c2, #172a3b80);
 }
+
+/* ==========================================================================
+   Giftcode Modal & Quick Redeem (UI/UX Pro Max)
+   ========================================================================== */
+.giftcode-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-weight: 600;
+  border-color: rgba(64, 224, 152, 0.4);
+  color: #40e098;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.giftcode-btn:hover {
+  background: rgba(64, 224, 152, 0.12);
+  border-color: #40e098;
+  transform: translateY(-1px);
+}
+.giftcode-btn:active {
+  transform: scale(0.98);
+}
+.btn-icon {
+  flex-shrink: 0;
+}
+
+.giftcode-dialog {
+  width: min(560px, 94vw);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
+  color: var(--ink);
+  padding: 0;
+  overflow: hidden;
+}
+.giftcode-dialog::backdrop {
+  background: rgba(7, 13, 22, 0.82);
+  backdrop-filter: blur(8px);
+}
+.giftcode-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 24px 28px 18px;
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(180deg, rgba(64, 224, 152, 0.05) 0%, transparent 100%);
+}
+.giftcode-title-wrap .eyebrow {
+  color: #40e098;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  margin-bottom: 4px;
+}
+.giftcode-title-wrap h2 {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--ink);
+}
+.giftcode-modal-body {
+  padding: 22px 28px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.giftcode-account-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--line);
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--ink);
+}
+.badge-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #f5d485;
+}
+.badge-dot.active {
+  background: #40e098;
+  box-shadow: 0 0 8px #40e098;
+}
+.giftcode-account-badge a {
+  color: #40e098;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.giftcode-input-row {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+}
+.giftcode-input-wrap {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+.giftcode-input-wrap input {
+  width: 100%;
+  background: var(--bg);
+  border: 1.5px solid var(--line);
+  border-radius: 8px;
+  padding: 12px 64px 12px 14px;
+  font-size: 15px;
+  font-family: ui-monospace, SFMono-Regular, 'Roboto Mono', Menlo, Consolas, monospace;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--ink);
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+.giftcode-input-wrap input:focus {
+  border-color: #40e098;
+  box-shadow: 0 0 0 3px rgba(64, 224, 152, 0.2);
+  outline: none;
+}
+.giftcode-input-wrap .text-button {
+  position: absolute;
+  right: 10px;
+  padding: 4px 8px;
+  font-size: 12px;
+  color: var(--muted);
+  border-radius: 4px;
+  cursor: pointer;
+}
+.giftcode-input-wrap .text-button:hover {
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.08);
+}
+.giftcode-input-row button[type='submit'] {
+  padding: 0 22px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.giftcode-feedback {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+  animation: feedbackSlideIn 0.25s ease-out;
+}
+@keyframes feedbackSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.giftcode-feedback.success {
+  background: rgba(64, 224, 152, 0.12);
+  border: 1px solid rgba(64, 224, 152, 0.4);
+  color: #40e098;
+}
+.giftcode-feedback.warning {
+  background: rgba(245, 212, 133, 0.12);
+  border: 1px solid rgba(245, 212, 133, 0.4);
+  color: #f5d485;
+}
+.giftcode-feedback.error {
+  background: rgba(255, 107, 107, 0.12);
+  border: 1px solid rgba(255, 107, 107, 0.4);
+  color: #ff9e9e;
+}
+
+.giftcode-presets {
+  margin-top: 4px;
+}
+.presets-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.preset-code-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.preset-code-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--line);
+  padding: 10px 14px;
+  border-radius: 8px;
+  transition: all 0.18s ease;
+  cursor: pointer;
+}
+.preset-code-card:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(64, 224, 152, 0.4);
+  transform: translateX(2px);
+}
+.code-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.code-title-row strong {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 14px;
+  color: var(--ink);
+}
+.code-badge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(64, 224, 152, 0.15);
+  color: #40e098;
+}
+.code-details span {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.mini-redeem-btn {
+  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.mini-redeem-btn:hover {
+  background: #40e098;
+  color: #071520;
+  border-color: #40e098;
+}
+
+.giftcode-footer-note {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  font-size: 12px;
+  color: var(--muted);
+}
+.giftcode-footer-note p {
+  margin: 0;
+  line-height: 1.4;
+}
+.giftcode-external-link {
+  color: var(--muted);
+  text-decoration: underline;
+  font-size: 12px;
+  transition: color 0.15s ease;
+  cursor: pointer;
+}
+.giftcode-external-link:hover {
+  color: #40e098;
+}

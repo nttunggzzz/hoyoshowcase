@@ -10,6 +10,7 @@
     <script src="/js/collection-controller.js" type="module"></script>
     <script src="/js/showcase.js" type="module"></script>
     <script src="/js/preview/controller.js" type="module"></script>
+    <script src="/js/giftcode.js" type="module"></script>
   </head>
   <body>
     <header class="topbar">
@@ -23,6 +24,29 @@
       <div class="header-actions">
         <button id="theme-toggle" class="icon-button" aria-label="Đổi giao diện sáng tối">
           Sáng</button
+        ><button
+          id="giftcode-open"
+          class="button outline giftcode-btn"
+          aria-label="Đổi mã quà tặng"
+        >
+          <svg
+            class="btn-icon"
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polyline points="20 12 20 22 4 22 4 12" />
+            <rect x="2" y="7" width="20" height="5" />
+            <line x1="12" y1="22" x2="12" y2="7" />
+            <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z" />
+            <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" />
+          </svg>
+          <span>Nhập Code</span></button
         ><button id="connect-open" class="text-button">Tài khoản</button
         ><button id="showcase-refresh" class="button primary">
           Đồng bộ dữ liệu <span aria-hidden="true">↻</span>
@@ -372,6 +396,74 @@
             </ul>
           </details>
         </section>
+      </div>
+    </dialog>
+    <dialog id="giftcode-dialog" class="giftcode-dialog" aria-labelledby="giftcode-title">
+      <div class="giftcode-modal-header">
+        <div class="giftcode-title-wrap">
+          <p class="eyebrow">ĐỔI MÃ QUÀ TẶNG (GIFTCODE)</p>
+          <h2 id="giftcode-title">Nhận Quà Genshin Impact</h2>
+        </div>
+        <button id="giftcode-close" class="dialog-close" aria-label="Đóng bảng nhập code">×</button>
+      </div>
+
+      <div class="giftcode-modal-body">
+        <div class="giftcode-account-badge" id="giftcode-account-info">
+          <span class="badge-dot" id="giftcode-account-dot"></span>
+          <span id="giftcode-role-label">Đang đọc thông tin tài khoản…</span>
+        </div>
+
+        <form id="giftcode-form" autocomplete="off">
+          <div class="giftcode-input-row">
+            <div class="giftcode-input-wrap">
+              <input
+                id="giftcode-input"
+                name="cdkey"
+                type="text"
+                placeholder="Nhập hoặc dán mã quà tặng (ví dụ: GENSHINGIFT)"
+                autocomplete="off"
+                spellcheck="false"
+                required
+              />
+              <button
+                type="button"
+                id="giftcode-paste"
+                class="text-button"
+                title="Dán từ Clipboard"
+              >
+                Dán
+              </button>
+            </div>
+            <button type="submit" id="giftcode-submit" class="button primary">
+              <span>Đổi quà</span>
+            </button>
+          </div>
+        </form>
+
+        <div id="giftcode-feedback" class="giftcode-feedback" hidden>
+          <div class="feedback-icon" id="feedback-icon"></div>
+          <div class="feedback-text" id="feedback-text"></div>
+        </div>
+
+        <div class="giftcode-presets">
+          <p class="presets-title">Mã quà tặng đang hoạt động (Click để đổi ngay):</p>
+          <div class="preset-code-list" id="preset-code-list"></div>
+        </div>
+
+        <div class="giftcode-footer-note">
+          <p>
+            Phần thưởng (Nguyên Thạch, Mora, Sách Kinh Nghiệm...) sẽ được HoYoverse gửi trực tiếp
+            vào Hòm thư trong game sau khi đổi thành công.
+          </p>
+          <a
+            href="https://genshin.hoyoverse.com/vi/gift"
+            target="_blank"
+            rel="noreferrer"
+            class="giftcode-external-link"
+          >
+            Mở trang web đổi quà chính thức của HoYoverse ↗
+          </a>
+        </div>
       </div>
     </dialog>
   </body>

@@ -96,6 +96,14 @@ export async function dispatchApi(pathname, input, c, { publishSnapshot, onPersi
     case '/api/pity':
       result = await getPityDataForUid(String(input.uid || ''));
       break;
+    case '/api/redeem-code':
+      result = await core.redeemCode(
+        c,
+        String(input.cdkey || input.code || ''),
+        input.uid ? String(input.uid) : undefined,
+        input.server ? String(input.server) : undefined,
+      );
+      break;
     case '/api/reset':
       core.resetCredentials(c);
       c.transport.audit = [];

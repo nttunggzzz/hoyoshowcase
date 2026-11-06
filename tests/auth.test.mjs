@@ -447,3 +447,26 @@ test('loopback HTTP guards isolate sessions, reject cross-origin writes, and nev
     await new Promise((resolve) => server.close(resolve));
   }
 });
+test('redeemCode validates input and calls upstream giftcode endpoint', async () => {
+  const f = fake([
+    response({
+      body: { retcode: 0, message: 'Đổi thành công!', data: null },
+    }),
+  ]);
+  f.ctx.cookies = { cookie_token_v2: 'TEST_COOKIE_TOKEN' };
+  f.ctx.selected = { uid: '887630784', server: 'os_asia' };
+
+  await assert.rejects(c.redeemCode(f.ctx, ''), /nhập mã đổi quà/);
+  await assert.rejects(
+    c.redeemCode({ ...f.ctx, cookies: {} }, 'GENSHINGIFT'),
+    /đăng nhập tài khoản/,
+  );
+
+  const res = await c.redeemCode(f.ctx, 'GENSHINGIFT');
+  assert.equal(res.ok, true);
+  assert.equal(res.retcode, 0);
+  assert.equal(res.code, 'GENSHINGIFT');
+  assert.equal(f.calls.length, 1);
+  assert.ok(f.calls[0].url.startsWith(c.URLS.redeem));
+  assert.match(f.calls[0].headers.Cookie, /cookie_token_v2=TEST_COOKIE_TOKEN/);
+});

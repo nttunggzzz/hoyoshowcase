@@ -14,4 +14,5 @@ export const URLS = Object.freeze({
   detail: 'https://sg-public-api.hoyolab.com/event/game_record/genshin/api/character/detail',
   authkey: 'https://api-account-os.hoyoverse.com/binding/api/genAuthKeyByCookieToken',
   wishes: 'https://public-operation-hk4e-sg.hoyoverse.com/gacha_info/api/getGachaLog',
+  redeem: 'https://sg-hk4e-api.hoyoverse.com/common/apicdkey/api/webExchangeCdkey',
 });
