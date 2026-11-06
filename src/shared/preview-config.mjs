@@ -480,11 +480,24 @@ export function planPreview(model, c) {
   let mapHeight = 0;
   const isSquareMap = c.maps && c.mapStyle === 'square';
   if (isSquareMap) {
-    const boxH = Math.max(bannerHeight, 235);
     if (both) {
-      mapSquare = { x: 20, y: 20, width: charWidth, height: boxH };
-      bannerHeight = boxH;
       mapHeight = 0;
+      const hasWish =
+        c.wishBanner && (c.wishPosition === 'above_weapon' || c.wishPosition !== 'top_banner');
+      const boxH = 135;
+      const wishW = hasWish
+        ? Math.min(420, Math.max(340, Math.round((weaponWidth - 14) * 0.4)))
+        : 0;
+      const mapW = hasWish ? weaponWidth - wishW - 14 : weaponWidth;
+      const mapX = hasWish ? weaponX + wishW + 14 : weaponX;
+      mapSquare = {
+        x: mapX,
+        y: 0,
+        width: mapW,
+        height: boxH,
+        wishW,
+        wishH: boxH,
+      };
     } else {
       const squareW = Math.min(600, availW);
       mapSquare = { x: Math.round((baseW - squareW) / 2), y: 20, width: squareW, height: 235 };
@@ -499,22 +512,20 @@ export function planPreview(model, c) {
   }
   const charGrid = grid(selected.characters.length, c.charCols, charWidth),
     weaponGrid = grid(selected.weapons.length, c.weaponCols, weaponWidth);
-  const charPanelY = both
-    ? mapSquare
-      ? bannerHeight + 20
-      : c.collectionHeader
-        ? 110
-        : 20
-    : bannerHeight + 38;
+  const charPanelY = both ? (c.collectionHeader ? 110 : 20) : bannerHeight + 38;
   const charPanel = { x: 20, y: charPanelY, width: charWidth };
   const charBottom = charOn ? charPanel.y + charGrid.height : bannerHeight + 38;
-  const wishHeight = c.wishBanner && c.wishPosition === 'above_weapon' && both ? 122 : 0;
-  const minWeaponTop = bannerHeight + (mapSquare ? 20 : 38) + wishHeight;
+  const hasWishAboveWeapon = c.wishBanner && c.wishPosition !== 'top_banner' && both;
+  const upperRightHeight = hasWishAboveWeapon || (mapSquare && both) ? 147 : 0;
+  const minWeaponTop = bannerHeight + (upperRightHeight ? upperRightHeight + 20 : 38);
   const weaponTopY =
     both && c.weaponAlign === 'bottom'
       ? Math.max(minWeaponTop, charBottom - weaponGrid.height)
       : minWeaponTop;
   const weaponPanel = { x: weaponX, y: weaponTopY, width: weaponWidth };
+  if (mapSquare && both) {
+    mapSquare.y = weaponTopY - mapSquare.height - 12;
+  }
   const boardHeight = c.account
     ? Math.max(
         20 + bannerHeight,

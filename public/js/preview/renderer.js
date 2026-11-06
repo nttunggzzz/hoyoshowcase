@@ -270,9 +270,11 @@ export async function renderAccountPreview({
       }
     }
     if (wishAboveWeapon) {
-      const wishY = p.weaponPanel.y - 110 - 12;
-      const wishW = Math.min(500, p.weaponPanel.width);
-      paintWishBanner(p.weaponPanel.x, wishY, wishW, 110);
+      const wishH = p.mapSquare && p.mapSquare.wishH ? p.mapSquare.wishH : 110;
+      const wishY = p.weaponPanel.y - wishH - 12;
+      const wishW =
+        p.mapSquare && p.mapSquare.wishW ? p.mapSquare.wishW : Math.min(500, p.weaponPanel.width);
+      paintWishBanner(p.weaponPanel.x, wishY, wishW, wishH);
     }
     const cols = p.both ? 3 : 5,
       fw = (banner.width - 36) / cols,
@@ -622,14 +624,14 @@ export async function renderAccountPreview({
         .join(' / ');
       text(sub, x + w - 16, y + 25, 11, theme.textMuted, 500, 'right', Math.round(w / 2));
     }
-    const cols = w >= 660 ? 3 : 2;
+    const cols = w >= 520 ? 3 : 2;
     const colGap = 10;
     const paddingX = 14;
     const colW = (w - paddingX * 2 - (cols - 1) * colGap) / cols;
     const count = maps.length;
     const rows = Math.ceil(count / cols);
-    const startY = y + 38;
-    const rowH = Math.min(38, Math.floor((h - 44) / Math.max(1, rows)));
+    const startY = y + 36;
+    const rowH = Math.min(38, Math.floor((h - 38) / Math.max(1, rows)));
 
     maps.forEach((r, i) => {
       const col = i % cols;
