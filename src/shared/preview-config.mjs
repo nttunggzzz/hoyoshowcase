@@ -473,10 +473,11 @@ export function planPreview(model, c) {
       mapHeight = 255;
     }
   } else if (c.maps) {
+    const mapCols = baseW < 1200 ? 2 : 3;
     mapHeight =
       c.mapStyle === 'compact'
-        ? 75 + Math.ceil(mapCount / 3) * 52
-        : 100 + Math.ceil(mapCount / 3) * 200;
+        ? 75 + Math.ceil(mapCount / mapCols) * 52
+        : 100 + Math.ceil(mapCount / mapCols) * 200;
   }
   const charGrid = grid(selected.characters.length, c.charCols, charWidth),
     weaponGrid = grid(selected.weapons.length, c.weaponCols, weaponWidth);
@@ -516,7 +517,7 @@ export function planPreview(model, c) {
     );
   });
   const height = Math.ceil(mapHeight + boardHeight + buildHeights.reduce((a, b) => a + b, 0));
-  const scale = c.width / 1600;
+  const scale = isCustomSize ? 1 : c.width / 1600;
   const autoOutputHeight = Math.ceil(height * scale);
   const outputWidth = isCustomSize && c.imageWidth > 0 ? c.imageWidth : c.width;
   const outputHeight = isCustomSize && c.imageHeight > 0 ? c.imageHeight : autoOutputHeight;

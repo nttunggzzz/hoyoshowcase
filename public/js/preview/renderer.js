@@ -232,35 +232,39 @@ export async function renderAccountPreview({
         style: c.frameStyle,
       });
       if (hasIdentity) {
-        panel(banner.x + banner.width - 450, 35, 432, 110, {
+        const idBoxW = Math.min(432, banner.width - 20);
+        const idBoxX = banner.x + banner.width - idBoxW - 14;
+        panel(idBoxX, 35, idBoxW, 110, {
           fill: theme.panelFill,
           stroke: theme.panelStroke,
           line: 1.2,
           style: c.frameStyle,
         });
         if (c.cornerAccents) {
-          cornerBrackets(banner.x + banner.width - 447, 38, 426, 104, theme.accent, 10);
+          cornerBrackets(idBoxX + 3, 38, idBoxW - 6, 104, theme.accent, 10);
         }
-        identity(banner.x + banner.width - 435, 45, 400);
+        identity(idBoxX + 12, 45, idBoxW - 24);
       } else text('GENSHIN IMPACT', banner.x + 22, 60, 16, theme.accent, 600);
       if (c.wishBanner && !wishAboveWeapon) {
-        const pityW = Math.min(480, banner.width - (hasIdentity ? 470 : 40));
+        const pityW = Math.min(480, banner.width - (hasIdentity ? idBoxW + 38 : 40));
         if (pityW >= 260) {
           paintWishBanner(banner.x + 18, 35, pityW, 110);
         }
       }
     } else {
       if (hasIdentity) {
-        panel(banner.x + banner.width - 450, 20, 432, 110, {
+        const idBoxW = Math.min(432, banner.width - 20);
+        const idBoxX = banner.x + banner.width - idBoxW - 14;
+        panel(idBoxX, 20, idBoxW, 110, {
           fill: theme.panelFill,
           stroke: theme.panelStroke,
           line: 1.2,
           style: c.frameStyle,
         });
         if (c.cornerAccents) {
-          cornerBrackets(banner.x + banner.width - 447, 23, 426, 104, theme.accent, 10);
+          cornerBrackets(idBoxX + 3, 23, idBoxW - 6, 104, theme.accent, 10);
         }
-        identity(banner.x + banner.width - 435, 30, 400);
+        identity(idBoxX + 12, 30, idBoxW - 24);
       } else {
         text('GENSHIN IMPACT', banner.x + 22, 45, 16, theme.accent, 600);
       }
@@ -451,15 +455,20 @@ export async function renderAccountPreview({
         text(corner, x + 5, y + Math.min(20, w * 0.25), Math.min(17, w * 0.23), '#fff', 700);
       }
     }
-    if (!weapon && c.elements)
+    if (!weapon && c.elements) {
+      const elemSize = Math.max(12, Math.min(19, Math.round(w * 0.28)));
       contain(
         art(GAME_ASSETS.elements[owner.element]),
-        x + w - 23,
+        x + w - elemSize - 4,
         y + (isVip ? Math.max(26, w * 0.42) : 4),
-        19,
-        19,
+        elemSize,
+        elemSize,
       );
-    if (weapon && c.weaponOwner) contain(art(owner.icon), x + w - 26, y + 2, 24, 24);
+    }
+    if (weapon && c.weaponOwner) {
+      const ownerSize = Math.max(14, Math.min(24, Math.round(w * 0.32)));
+      contain(art(owner.icon), x + w - ownerSize - 2, y + 2, ownerSize, ownerSize);
+    }
     ctx.restore();
     ctx.lineWidth = isVip ? 3.5 : c.premium && s === 5 ? 2 : 1;
     ctx.strokeStyle = isVip
@@ -498,11 +507,16 @@ export async function renderAccountPreview({
         15,
         '#bbcddd',
       );
+    const cols = baseW < 1200 ? 2 : 3;
+    const gap = 16;
+    const colW = (baseW - 50 - (cols - 1) * gap) / cols;
     maps.forEach((r, i) => {
-      const x = 25 + (i % 3) * 523,
-        top = y + 96 + Math.floor(i / 3) * 200,
-        w = 504,
-        h = 182;
+      const col = i % cols;
+      const row = Math.floor(i / cols);
+      const x = 25 + col * (colW + gap);
+      const top = y + 96 + row * 200;
+      const w = colW;
+      const h = 182;
       ctx.save();
       round(x, top, w, h);
       ctx.clip();
@@ -521,18 +535,18 @@ export async function renderAccountPreview({
       ctx.fillRect(x + 18, top + 56, ((w - 36) * percent) / 100, 3);
       regionRows(r, model)
         .slice(0, 4)
-        .forEach(([name, value], row) => {
+        .forEach(([name, value], rowIdx) => {
           text(
             name.length > 43 ? name.slice(0, 41) + '…' : name,
             x + 18,
-            top + 84 + row * 22,
+            top + 84 + rowIdx * 22,
             13,
             '#d8e1ea',
             500,
             'left',
             w - 110,
           );
-          text(value, x + w - 18, top + 84 + row * 22, 13, '#eef2f6', 500, 'right');
+          text(value, x + w - 18, top + 84 + rowIdx * 22, 13, '#eef2f6', 500, 'right');
         });
     });
   }
@@ -548,8 +562,8 @@ export async function renderAccountPreview({
         12,
         '#bbcddd',
       );
-    const cols = 3;
-    const colW = (1600 - 50 - (cols - 1) * 16) / cols;
+    const cols = baseW < 1200 ? 2 : 3;
+    const colW = (baseW - 50 - (cols - 1) * 16) / cols;
     const rowH = 44;
     const startY = y + 62;
     maps.forEach((r, i) => {
@@ -565,10 +579,12 @@ export async function renderAccountPreview({
         line: 1,
       });
       contain(art(r.icon), x + 8, top + 6, 32, 32);
-      text(r.name, x + 48, top + 26, 14, isComplete ? '#ffffff' : '#dbe5f0', 600, 'left', 180);
-      const barX = x + 235;
+      const nameW = Math.max(60, Math.floor(colW * 0.38));
+      text(r.name, x + 48, top + 26, 13, isComplete ? '#ffffff' : '#dbe5f0', 600, 'left', nameW);
+      const barX = x + 48 + nameW + 10;
+      const pctX = x + colW - 14;
+      const barW = Math.max(20, pctX - 44 - barX);
       const barY = top + 18;
-      const barW = colW - 325;
       const barH = 8;
       round(barX, barY, barW, barH, 4);
       ctx.fillStyle = '#172b3f';
@@ -580,9 +596,9 @@ export async function renderAccountPreview({
       }
       text(
         readable(percent) + '%',
-        x + colW - 14,
+        pctX,
         top + 27,
-        14,
+        13,
         isComplete ? '#40e098' : '#f5d485',
         700,
         'right',
