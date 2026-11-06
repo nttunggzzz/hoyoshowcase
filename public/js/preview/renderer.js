@@ -194,17 +194,18 @@ export async function renderAccountPreview({
   function paintBoard(offset) {
     ctx.save();
     ctx.translate(0, offset);
+    const effectiveBoardH = Math.max(p.boardHeight, fullH - offset);
     if (c.bgBlur > 0) {
       ctx.save();
       ctx.filter = `blur(${c.bgBlur}px)`;
-      cover(bg, -20, -20, baseW + 40, p.boardHeight + 40);
+      cover(bg, -20, -20, baseW + 40, effectiveBoardH + 40);
       ctx.restore();
     } else {
-      cover(bg, 0, 0, baseW, p.boardHeight);
+      cover(bg, 0, 0, baseW, effectiveBoardH);
     }
     const dimAlpha = (c.bgDim ?? 30) / 100;
     ctx.fillStyle = `rgba(7, 22, 43, ${dimAlpha})`;
-    ctx.fillRect(0, 0, baseW, p.boardHeight);
+    ctx.fillRect(0, 0, baseW, effectiveBoardH);
     const banner = p.banner;
     ctx.save();
     round(banner.x, 20, banner.width, p.bannerHeight);
@@ -270,8 +271,11 @@ export async function renderAccountPreview({
       }
     }
     if (wishAboveWeapon) {
+      const isStacked = p.mapSquare && p.mapSquare.layout === 'stacked';
       const wishH = p.mapSquare && p.mapSquare.wishH ? p.mapSquare.wishH : 110;
-      const wishY = p.weaponPanel.y - wishH - 12;
+      const wishY = isStacked
+        ? p.weaponPanel.y - p.mapSquare.height - 12 - wishH - 12
+        : p.weaponPanel.y - wishH - 12;
       const wishW =
         p.mapSquare && p.mapSquare.wishW ? p.mapSquare.wishW : Math.min(500, p.weaponPanel.width);
       paintWishBanner(p.weaponPanel.x, wishY, wishW, wishH);

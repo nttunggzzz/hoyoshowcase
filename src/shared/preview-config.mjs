@@ -314,13 +314,13 @@ export function normalizeConfig(raw = {}, model) {
   } else if (raw.sizePreset === '2560x1440') {
     c.imageWidth = 2560;
     c.imageHeight = 1440;
-    if (raw.charCols == null) c.charCols = 10;
-    if (raw.weaponCols == null) c.weaponCols = 18;
+    if (raw.charCols == null || raw._v === 4) c.charCols = 8;
+    if (raw.weaponCols == null || raw._v === 4) c.weaponCols = 14;
   } else if (raw.sizePreset === '1080x1920') {
     c.imageWidth = 1080;
     c.imageHeight = 1920;
-    if (raw.charCols == null) c.charCols = 6;
-    if (raw.weaponCols == null) c.weaponCols = 11;
+    if (raw.charCols == null || raw._v === 4) c.charCols = 5;
+    if (raw.weaponCols == null || raw._v === 4) c.weaponCols = 8;
   } else if (raw.sizePreset === '2048x2048') {
     c.imageWidth = 2048;
     c.imageHeight = 2048;
@@ -478,26 +478,44 @@ export function planPreview(model, c) {
     : 0;
   let mapSquare = null;
   let mapHeight = 0;
-  const isSquareMap = c.maps && c.mapStyle === 'square';
+  const isSquareMap = c.maps && (c.mapStyle === 'square' || (both && c.mapStyle === 'compact'));
+  let upperRightHeight = 0;
   if (isSquareMap) {
     if (both) {
       mapHeight = 0;
       const hasWish =
         c.wishBanner && (c.wishPosition === 'above_weapon' || c.wishPosition !== 'top_banner');
-      const boxH = 135;
-      const wishW = hasWish
-        ? Math.min(420, Math.max(340, Math.round((weaponWidth - 14) * 0.4)))
-        : 0;
-      const mapW = hasWish ? weaponWidth - wishW - 14 : weaponWidth;
-      const mapX = hasWish ? weaponX + wishW + 14 : weaponX;
-      mapSquare = {
-        x: mapX,
-        y: 0,
-        width: mapW,
-        height: boxH,
-        wishW,
-        wishH: boxH,
-      };
+      if (weaponWidth >= 760) {
+        const boxH = 135;
+        const wishW = hasWish
+          ? Math.min(420, Math.max(340, Math.round((weaponWidth - 14) * 0.4)))
+          : 0;
+        const mapW = hasWish ? weaponWidth - wishW - 14 : weaponWidth;
+        const mapX = hasWish ? weaponX + wishW + 14 : weaponX;
+        mapSquare = {
+          x: mapX,
+          y: 0,
+          width: mapW,
+          height: boxH,
+          wishW,
+          wishH: boxH,
+          layout: 'side_by_side',
+        };
+        upperRightHeight = 147;
+      } else {
+        const wishH = hasWish ? 110 : 0;
+        const mapH = 135;
+        mapSquare = {
+          x: weaponX,
+          y: 0,
+          width: weaponWidth,
+          height: mapH,
+          wishW: weaponWidth,
+          wishH,
+          layout: 'stacked',
+        };
+        upperRightHeight = (hasWish ? wishH + 12 : 0) + mapH + 12;
+      }
     } else {
       const squareW = Math.min(600, availW);
       mapSquare = { x: Math.round((baseW - squareW) / 2), y: 20, width: squareW, height: 235 };
@@ -516,7 +534,9 @@ export function planPreview(model, c) {
   const charPanel = { x: 20, y: charPanelY, width: charWidth };
   const charBottom = charOn ? charPanel.y + charGrid.height : bannerHeight + 38;
   const hasWishAboveWeapon = c.wishBanner && c.wishPosition !== 'top_banner' && both;
-  const upperRightHeight = hasWishAboveWeapon || (mapSquare && both) ? 147 : 0;
+  if (!upperRightHeight && hasWishAboveWeapon) {
+    upperRightHeight = 147;
+  }
   const minWeaponTop = bannerHeight + (upperRightHeight ? upperRightHeight + 20 : 38);
   const weaponTopY =
     both && c.weaponAlign === 'bottom'

@@ -173,10 +173,10 @@ function initializePreview() {
         const presets = {
           '1980x2040': { w: 1980, h: 2040, charCols: 8, weaponCols: 15, mapStyle: 'square' },
           '1920x1080': { w: 1920, h: 1080, charCols: 9, weaponCols: 16, mapStyle: 'square' },
-          '2560x1440': { w: 2560, h: 1440, charCols: 10, weaponCols: 18, mapStyle: 'square' },
-          '1080x1920': { w: 1080, h: 1920, charCols: 6, weaponCols: 11, mapStyle: 'square' },
+          '2560x1440': { w: 2560, h: 1440, charCols: 8, weaponCols: 14, mapStyle: 'square' },
+          '1080x1920': { w: 1080, h: 1920, charCols: 5, weaponCols: 8, mapStyle: 'square' },
           '2048x2048': { w: 2048, h: 2048, charCols: 8, weaponCols: 16, mapStyle: 'square' },
-          auto: { w: 1600, h: 0, charCols: 7, weaponCols: 14, mapStyle: 'classic' },
+          auto: { w: 1600, h: 0, charCols: 7, weaponCols: 14, mapStyle: 'square' },
         };
         const p = presets[t.value];
         if (p) {
