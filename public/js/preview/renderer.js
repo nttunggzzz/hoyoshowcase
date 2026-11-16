@@ -81,6 +81,21 @@ export async function renderAccountPreview({
   hits = [];
   const art = (url) => images.get(url),
     bg = art(bgUrl);
+  if (bg) {
+    if (c.bgBlur > 0) {
+      ctx.save();
+      ctx.filter = `blur(${c.bgBlur}px)`;
+      cover(bg, -20, -20, baseW + 40, fullH + 40);
+      ctx.restore();
+    } else {
+      cover(bg, 0, 0, baseW, fullH);
+    }
+    const dimAlpha = (c.bgDim ?? 30) / 100;
+    if (dimAlpha > 0) {
+      ctx.fillStyle = `rgba(7, 22, 43, ${dimAlpha})`;
+      ctx.fillRect(0, 0, baseW, fullH);
+    }
+  }
   if (p.mapSquare && !p.both) {
     paintSquareMaps(p.mapSquare.x, p.mapSquare.y, p.mapSquare.width, p.mapSquare.height);
   } else if (p.mapHeight) {
@@ -194,40 +209,14 @@ export async function renderAccountPreview({
   function paintBoard(offset) {
     ctx.save();
     ctx.translate(0, offset);
-    const effectiveBoardH = Math.max(p.boardHeight, fullH - offset);
-    if (c.bgBlur > 0) {
-      ctx.save();
-      ctx.filter = `blur(${c.bgBlur}px)`;
-      cover(bg, -20, -20, baseW + 40, effectiveBoardH + 40);
-      ctx.restore();
-    } else {
-      cover(bg, 0, 0, baseW, effectiveBoardH);
-    }
-    const dimAlpha = (c.bgDim ?? 30) / 100;
-    ctx.fillStyle = `rgba(7, 22, 43, ${dimAlpha})`;
-    ctx.fillRect(0, 0, baseW, effectiveBoardH);
     const banner = p.banner;
-    ctx.save();
-    round(banner.x, 20, banner.width, p.bannerHeight);
-    ctx.clip();
-    if (c.bgBlur > 0) {
-      ctx.save();
-      ctx.filter = `blur(${c.bgBlur}px)`;
-      cover(bg, banner.x - 10, 10, banner.width + 20, p.bannerHeight + 20);
-      ctx.restore();
-    } else {
-      cover(bg, banner.x, 20, banner.width, p.bannerHeight);
-    }
-    ctx.fillStyle = '#10223960';
-    ctx.fillRect(banner.x, 20, banner.width, p.bannerHeight);
-    ctx.restore();
     const hasIdentity =
       c.name || c.uid || c.ar || c.avatar || c.server || c.updated || c.code || c.signature;
     const wishAboveWeapon = c.wishBanner && c.wishPosition === 'above_weapon' && p.both;
     const drawFullBanner = p.facts.length > 0 || !wishAboveWeapon;
     if (drawFullBanner) {
       panel(banner.x, 20, banner.width, p.bannerHeight, {
-        fill: '#11233528',
+        fill: theme.panelFill,
         stroke: theme.borderLine,
         line: 1,
         style: c.frameStyle,

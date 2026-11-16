@@ -101,12 +101,22 @@ function initializePreview() {
       localStorage.setItem(roleKey, JSON.stringify(config));
     } catch {}
   }
+  function setActionsState(enabled) {
+    const downloadBtns = [
+      $('preview-download'),
+      $('preview-download-inline'),
+      $('floating-download'),
+    ].filter(Boolean);
+    const copyBtns = [$('preview-copy'), $('preview-copy-inline'), $('floating-copy')].filter(
+      Boolean,
+    );
+    downloadBtns.forEach((b) => (b.disabled = !enabled));
+    copyBtns.forEach((b) => (b.disabled = !enabled));
+  }
   function schedule() {
     const run = ++generation;
     ready = false;
-    $('preview-download').disabled = true;
-    const copyBtn = $('preview-copy');
-    if (copyBtn) copyBtn.disabled = true;
+    setActionsState(false);
     clearTimeout(timer);
     updateSummary();
     persist();
@@ -480,9 +490,7 @@ function initializePreview() {
     if (!result || run !== generation) return;
     hits = result.hits;
     ready = true;
-    $('preview-download').disabled = false;
-    const copyBtn = $('preview-copy');
-    if (copyBtn) copyBtn.disabled = false;
+    setActionsState(true);
     $('preview-loading').title = result.missing.join('\n');
     $('preview-loading').textContent = result.missing.length
       ? result.missing.length + ' ảnh chưa tải được. Đổi tùy chọn để thử lại.'
@@ -498,7 +506,20 @@ function initializePreview() {
     if (tile)
       window.dispatchEvent(new CustomEvent('showcase:open-character', { detail: { id: tile.id } }));
   });
-  $('preview-download').addEventListener('click', () => {
+
+  let toastTimer = null;
+  function showToast(msg) {
+    const toast = $('preview-toast');
+    if (!toast) return;
+    toast.textContent = msg;
+    toast.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+      toast.hidden = true;
+    }, 3200);
+  }
+
+  function triggerDownload() {
     if (!ready) return;
     canvas.toBlob((blob) => {
       if (!blob) {
@@ -509,36 +530,92 @@ function initializePreview() {
       const url = URL.createObjectURL(blob),
         a = document.createElement('a');
       a.href = url;
-      a.download = `genshin-account-${config.uid ? data.role.uid : 'preview'}.png`;
+      a.download = `genshin-account-${config.uid && data?.role?.uid ? data.role.uid : 'showcase'}.png`;
       a.click();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
+      showToast('Đang tải ảnh PNG về máy thành công!');
     }, 'image/png');
-  });
-  const copyBtn = $('preview-copy');
-  if (copyBtn) {
-    copyBtn.addEventListener('click', () => {
-      if (!ready) return;
-      canvas.toBlob(async (blob) => {
-        if (!blob) {
-          $('preview-error').hidden = false;
-          $('preview-error').textContent = 'Chưa tạo được PNG để sao chép.';
-          return;
+  }
+
+  function triggerCopy(sourceBtn) {
+    if (!ready) return;
+    canvas.toBlob(async (blob) => {
+      if (!blob) {
+        $('preview-error').hidden = false;
+        $('preview-error').textContent = 'Chưa tạo được PNG để sao chép.';
+        return;
+      }
+      try {
+        if (!navigator.clipboard || !window.ClipboardItem) {
+          throw new Error('Trình duyệt không hỗ trợ ClipboardItem');
         }
-        try {
-          await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-          const old = copyBtn.textContent;
-          copyBtn.textContent = '✓ Đã sao chép!';
-          copyBtn.classList.add('copy-success');
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+        if (sourceBtn) {
+          const span = sourceBtn.querySelector('span');
+          const oldText = span ? span.textContent : sourceBtn.textContent;
+          if (span) span.textContent = '✓ Đã chép!';
+          else sourceBtn.textContent = '✓ Đã chép!';
+          sourceBtn.classList.add('copy-success');
           setTimeout(() => {
-            copyBtn.textContent = old;
-            copyBtn.classList.remove('copy-success');
+            if (span) span.textContent = oldText;
+            else sourceBtn.textContent = oldText;
+            sourceBtn.classList.remove('copy-success');
           }, 2500);
-        } catch {
-          $('preview-error').hidden = false;
-          $('preview-error').textContent =
-            'Trình duyệt chưa cho phép ghi vào Clipboard. Hãy dùng nút Tải ảnh PNG.';
         }
+        showToast(
+          '✓ Đã sao chép ảnh vào Clipboard! Bạn có thể dán (Ctrl+V) vào Discord, Zalo, Messenger...',
+        );
+      } catch (e) {
+        console.warn('Lỗi copy clipboard:', e);
+        $('preview-error').hidden = false;
+        $('preview-error').textContent =
+          'Trình duyệt chưa cho phép ghi ảnh vào Clipboard trực tiếp. Hãy dùng nút Tải ảnh PNG.';
+      }
+    }, 'image/png');
+  }
+
+  $('preview-download')?.addEventListener('click', triggerDownload);
+  $('preview-download-inline')?.addEventListener('click', triggerDownload);
+  $('floating-download')?.addEventListener('click', triggerDownload);
+
+  $('preview-copy')?.addEventListener('click', (e) => triggerCopy(e.currentTarget));
+  $('preview-copy-inline')?.addEventListener('click', (e) => triggerCopy(e.currentTarget));
+  $('floating-copy')?.addEventListener('click', (e) => triggerCopy(e.currentTarget));
+
+  const ctxMenu = $('canvas-context-menu');
+  if (ctxMenu) {
+    canvas.addEventListener('contextmenu', (e) => {
+      if (!ready) return;
+      e.preventDefault();
+      ctxMenu.style.left = `${Math.min(window.innerWidth - 230, e.clientX + 5)}px`;
+      ctxMenu.style.top = `${Math.min(window.innerHeight - 180, e.clientY + 5)}px`;
+      ctxMenu.hidden = false;
+    });
+    document.addEventListener('click', (e) => {
+      if (!ctxMenu.contains(e.target)) ctxMenu.hidden = true;
+    });
+    document.addEventListener('scroll', () => {
+      ctxMenu.hidden = true;
+    });
+    $('ctx-copy')?.addEventListener('click', () => {
+      ctxMenu.hidden = true;
+      triggerCopy($('preview-copy'));
+    });
+    $('ctx-download')?.addEventListener('click', () => {
+      ctxMenu.hidden = true;
+      triggerDownload();
+    });
+    $('ctx-open')?.addEventListener('click', () => {
+      ctxMenu.hidden = true;
+      canvas.toBlob((blob) => {
+        if (!blob) return;
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank');
       }, 'image/png');
+    });
+    $('ctx-zoom')?.addEventListener('click', () => {
+      ctxMenu.hidden = true;
+      $('preview-zoom')?.click();
     });
   }
 }
