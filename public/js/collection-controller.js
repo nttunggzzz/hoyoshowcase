@@ -143,11 +143,27 @@ function authView(j) {
   return need;
 }
 async function api(path, input = {}, deferStatus = false) {
-  const r = await fetch(`/api/${path}`, {
+  let r = await fetch(`/api/${path}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-poc-csrf': csrf },
     body: JSON.stringify(input),
   });
+  if (r.status === 401) {
+    try {
+      const s = await fetch('/api/session').then((res) => res.json());
+      if (s?.csrf) {
+        csrf = s.csrf;
+        if (s.status) setSession(s.status);
+        r = await fetch(`/api/${path}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-poc-csrf': csrf },
+          body: JSON.stringify(input),
+        });
+      }
+    } catch {
+      // Bỏ qua lỗi làm mới session để xử lý lỗi 401 bình thường
+    }
+  }
   let j;
   try {
     j = await r.json();
@@ -337,14 +353,13 @@ function saveSnapshot() {
 }
 $('collector-login').addEventListener('submit', (e) => {
   e.preventDefault();
-  const input = Object.fromEntries(new FormData(e.target));
-  e.target.elements.account.value = '';
-  e.target.elements.password.value = '';
+  const form = e.target;
+  const input = Object.fromEntries(new FormData(form));
   action(async () => {
-    message('Đang đăng nhập HoYoLAB Web…');
-    await afterAuth(
-      await api('login', { ...input, profile: 'hoyolab_web', deviceId: webDeviceId() }),
-    );
+    message('Đang kết nối HoYoLAB Web…');
+    const res = await api('login', { ...input, profile: 'hoyolab_web', deviceId: webDeviceId() });
+    await afterAuth(res);
+    form.elements.password.value = '';
   });
 });
 $('collector-cookies').addEventListener('submit', (e) => {
