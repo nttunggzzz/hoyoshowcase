@@ -77,7 +77,8 @@ function notify(text) {
 function openConsole() {
   el('collector-console').showModal();
 }
-for (const id of ['connect-open', 'progress-open']) el(id).addEventListener('click', openConsole);
+for (const id of ['connect-open', 'progress-open', 'showcase-refresh'])
+  el(id).addEventListener('click', openConsole);
 el('collector-close').addEventListener('click', () => el('collector-console').close());
 el('character-close').addEventListener('click', () => el('character-dialog').close());
 for (const id of ['character-dialog', 'collector-console'])
@@ -96,11 +97,6 @@ document.querySelectorAll('.topbar nav a').forEach((a) =>
       .forEach((x) => x.classList.toggle('active', x === a));
   }),
 );
-el('showcase-refresh').addEventListener('click', () => {
-  if (session?.hasLtoken && el('collector-roles').value) {
-    el('collector-role-form').requestSubmit();
-  } else openConsole();
-});
 el('showcase-export').addEventListener('click', () => {
   if (!model) return notify('Kết nối HoYoLAB để lấy dữ liệu trước.');
   if (lastJob?.hasSnapshot && !el('collector-download').disabled) el('collector-download').click();
