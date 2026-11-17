@@ -304,13 +304,13 @@ export function normalizeConfig(raw = {}, model) {
   if (raw.sizePreset === '1980x2040') {
     c.imageWidth = 1980;
     c.imageHeight = 2040;
-    if (raw.charCols == null) c.charCols = 8;
-    if (raw.weaponCols == null) c.weaponCols = 15;
+    if (raw.charCols == null || raw._v === 4) c.charCols = 8;
+    if (raw.weaponCols == null || raw._v === 4) c.weaponCols = 15;
   } else if (raw.sizePreset === '1920x1080') {
     c.imageWidth = 1920;
     c.imageHeight = 1080;
-    if (raw.charCols == null) c.charCols = 9;
-    if (raw.weaponCols == null) c.weaponCols = 16;
+    if (raw.charCols == null || raw._v === 4) c.charCols = 9;
+    if (raw.weaponCols == null || raw._v === 4) c.weaponCols = 16;
   } else if (raw.sizePreset === '2560x1440') {
     c.imageWidth = 2560;
     c.imageHeight = 1440;
@@ -324,13 +324,22 @@ export function normalizeConfig(raw = {}, model) {
   } else if (raw.sizePreset === '2048x2048') {
     c.imageWidth = 2048;
     c.imageHeight = 2048;
-    if (raw.charCols == null) c.charCols = 8;
-    if (raw.weaponCols == null) c.weaponCols = 16;
+    if (raw.charCols == null || raw._v === 4) c.charCols = 8;
+    if (raw.weaponCols == null || raw._v === 4) c.weaponCols = 16;
   } else if (raw.sizePreset === 'custom') {
     if (Number.isFinite(Number(raw.imageWidth)))
       c.imageWidth = Math.max(800, Math.min(3840, Math.floor(Number(raw.imageWidth))));
     if (Number.isFinite(Number(raw.imageHeight)))
       c.imageHeight = Math.max(0, Math.min(5000, Math.floor(Number(raw.imageHeight))));
+    if (!raw._customCols) {
+      if (c.imageWidth >= 1800 && c.charCols <= 6) {
+        c.charCols = c.imageWidth >= 2400 ? 8 : 9;
+        c.weaponCols = 16;
+      } else if (c.imageWidth < 1400 && c.charCols > 6) {
+        c.charCols = 5;
+        c.weaponCols = 8;
+      }
+    }
   } else {
     c.sizePreset = 'auto';
     c.imageWidth = c.width;

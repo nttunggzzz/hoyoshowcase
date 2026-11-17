@@ -180,6 +180,7 @@ function initializePreview() {
         if (opt) opt.style.display = t.checked ? 'block' : 'none';
       }
       if (t.dataset.key === 'sizePreset') {
+        config._customCols = false;
         const presets = {
           '1980x2040': { w: 1980, h: 2040, charCols: 8, weaponCols: 15, mapStyle: 'square' },
           '1920x1080': { w: 1920, h: 1080, charCols: 9, weaponCols: 16, mapStyle: 'square' },
@@ -210,6 +211,8 @@ function initializePreview() {
         const presetSelect = controls.querySelector('select[data-key="sizePreset"]');
         if (presetSelect) presetSelect.value = 'custom';
         config.sizePreset = 'custom';
+      } else if (t.dataset.key === 'charCols' || t.dataset.key === 'weaponCols') {
+        config._customCols = true;
       }
       config[t.dataset.key] =
         t.type === 'checkbox'
@@ -287,10 +290,19 @@ function initializePreview() {
           if (presetSelect) presetSelect.value = 'custom';
           config.sizePreset = 'custom';
         }
+        if (t.dataset.key === 'charCols' || t.dataset.key === 'weaponCols') {
+          config._customCols = true;
+        }
         if (['charPity', 'weaponPity', 'rollsLeft', 'monthCard'].includes(t.dataset.key)) {
           updatePityDisplay('Tùy chỉnh thủ công');
         }
         config = normalizeConfig(config, data);
+        const charColsInp = controls.querySelector('input[data-key="charCols"]');
+        const weaponColsInp = controls.querySelector('input[data-key="weaponCols"]');
+        if (charColsInp && document.activeElement !== charColsInp)
+          charColsInp.value = config.charCols;
+        if (weaponColsInp && document.activeElement !== weaponColsInp)
+          weaponColsInp.value = config.weaponCols;
         schedule();
       }
     }
