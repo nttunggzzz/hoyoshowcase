@@ -397,6 +397,7 @@ function initializePreview() {
           weaponCols: 14,
           charGridMode: 'balanced',
           weaponGridMode: 'balanced',
+          charAlign: 'bottom',
           weaponAlign: 'bottom',
           charSort: preset === 'vip' ? 'prestige' : 'rarity',
           maps: preset === 'full' || preset === 'compact',

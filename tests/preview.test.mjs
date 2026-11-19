@@ -255,3 +255,19 @@ test('showcase exposes all returned character stat categories and meaningful cat
   assert.ok(m.previewFacts.some((x) => x.id === 'collection.weapons'));
   assert.ok(m.previewFacts.some((x) => x.id === 'abyss_current.state'));
 });
+test('charAlign bottom anchors character panel to the canvas bottom when fitting, and caps at minCharY when exceeding', () => {
+  const m = model();
+  // 1. Fitting case: 30 characters in 8 cols (4 rows) easily fits within 1440px
+  const cFitting = normalizeConfig(
+    { sizePreset: '2560x1440', charCols: 8, charLimit: 30, charAlign: 'bottom' },
+    m,
+  );
+  const pFitting = planPreview(m, cFitting);
+  assert.equal(pFitting.charPanel.y + pFitting.charGrid.height, 1440 - 24);
+  assert.ok(pFitting.charPanel.y > 20);
+
+  // 2. Exceeding case: 65 characters in 6 cols (11 rows) exceeds 1440px -> capped at minCharY = 20
+  const cExceed = normalizeConfig({ sizePreset: '2560x1440', charCols: 6, charAlign: 'bottom' }, m);
+  const pExceed = planPreview(m, cExceed);
+  assert.equal(pExceed.charPanel.y, 20);
+});

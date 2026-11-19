@@ -297,14 +297,16 @@ export async function renderAccountPreview({
     }
     if (c.characters) {
       if (p.both && c.collectionHeader) {
-        panel(20, 20, p.charPanel.width, 74, {
+        const headerY = Math.max(20, p.charPanel.y - 90);
+        panel(20, headerY, p.charPanel.width, 74, {
           fill: theme.panelFill,
           stroke: theme.panelStroke,
           line: 1.2,
           style: c.frameStyle,
         });
-        text('BỘ SƯU TẬP', 38, 53, 22, theme.accent, 600);
-        if (c.name) text(model.profile.nickname || 'Nhà lữ hành', 38, 77, 15, theme.textLight);
+        text('BỘ SƯU TẬP', 38, headerY + 33, 22, theme.accent, 600);
+        if (c.name)
+          text(model.profile.nickname || 'Nhà lữ hành', 38, headerY + 57, 15, theme.textLight);
       }
       paintGrid(p.characters, p.charPanel, p.charGrid, false, offset);
     }

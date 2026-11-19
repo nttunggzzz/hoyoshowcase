@@ -174,6 +174,7 @@ export const DEFAULT_CONFIG = Object.freeze({
   weaponLimit: 0,
   charGridMode: 'balanced',
   weaponGridMode: 'balanced',
+  charAlign: 'bottom',
   weaponAlign: 'bottom',
   charRarity: 'all',
   weaponRarity: 'all',
@@ -242,6 +243,7 @@ const enumValues = {
   frameStyle: ['modern', 'fantasy'],
   charGridMode: ['balanced', 'full'],
   weaponGridMode: ['balanced', 'full'],
+  charAlign: ['bottom', 'top'],
   weaponAlign: ['bottom', 'top'],
   wishPosition: ['above_weapon', 'top_banner'],
   sizePreset: ['auto', '1980x2040', '1920x1080', '2560x1440', '1080x1920', '2048x2048', 'custom'],
@@ -539,14 +541,21 @@ export function planPreview(model, c) {
   }
   const charGrid = grid(selected.characters.length, c.charCols, charWidth),
     weaponGrid = grid(selected.weapons.length, c.weaponCols, weaponWidth);
-  const charPanelY = both ? (c.collectionHeader ? 110 : 20) : bannerHeight + 38;
-  const charPanel = { x: 20, y: charPanelY, width: charWidth };
-  const charBottom = charOn ? charPanel.y + charGrid.height : bannerHeight + 38;
+  const minCharY = both ? (c.collectionHeader ? 110 : 20) : bannerHeight + 38;
   const hasWishAboveWeapon = c.wishBanner && c.wishPosition !== 'top_banner' && both;
   if (!upperRightHeight && hasWishAboveWeapon) {
     upperRightHeight = 147;
   }
   const minWeaponTop = bannerHeight + (upperRightHeight ? upperRightHeight + 20 : 38);
+  const isCustomHeight = isCustomSize && c.imageHeight > 0;
+  const rightBottom = minWeaponTop + (weaponOn ? weaponGrid.height : 0);
+  const targetBottom = isCustomHeight
+    ? c.imageHeight - 24
+    : Math.max(minCharY + charGrid.height, rightBottom);
+  const charPanelY =
+    c.charAlign === 'bottom' ? Math.max(minCharY, targetBottom - charGrid.height) : minCharY;
+  const charPanel = { x: 20, y: charPanelY, width: charWidth };
+  const charBottom = charOn ? charPanel.y + charGrid.height : bannerHeight + 38;
   const weaponTopY =
     both && c.weaponAlign === 'bottom'
       ? Math.max(minWeaponTop, charBottom - weaponGrid.height)

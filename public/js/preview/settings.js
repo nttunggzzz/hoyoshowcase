@@ -263,6 +263,10 @@ export function createPreviewSettings({ controls, getData, getConfig, label }) {
             [2400, '2400 px (2K Sắc nét)'],
             [3200, '3200 px (4K Ultra HD)'],
           ])}
+          ${select('charAlign', 'Vị trí căn lề bảng nhân vật', [
+            ['bottom', 'Bám sát lề dưới canvas (Để lộ ảnh nền phía trên)'],
+            ['top', 'Căn sát lề trên canvas (Treo lề trên)'],
+          ])}
           ${select('weaponAlign', 'Vị trí căn lề bảng vũ khí', [
             ['bottom', 'Căn bằng lề dưới với nhân vật (Cùng lề dưới, cân xứng)'],
             ['top', 'Căn sát phía trên (Dưới hòm Cầu Nguyện)'],
