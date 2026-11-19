@@ -271,3 +271,15 @@ test('charAlign bottom anchors character panel to the canvas bottom when fitting
   const pExceed = planPreview(m, cExceed);
   assert.equal(pExceed.charPanel.y, 20);
 });
+test('sizePresets preserve custom charCols and weaponCols when explicitly set, even with _v: 4', () => {
+  const m = model();
+  const c = normalizeConfig({ sizePreset: '2560x1440', charCols: 5, weaponCols: 10, _v: 4 }, m);
+  assert.equal(c.charCols, 5);
+  assert.equal(c.weaponCols, 10);
+  assert.equal(c.imageWidth, 2560);
+  assert.equal(c.imageHeight, 1440);
+
+  const cDefault = normalizeConfig({ sizePreset: '2560x1440', _v: 4 }, m);
+  assert.equal(cDefault.charCols, 8);
+  assert.equal(cDefault.weaponCols, 14);
+});

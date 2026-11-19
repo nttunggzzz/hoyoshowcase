@@ -160,6 +160,7 @@ export const THEMES = Object.freeze({
 });
 export const DEFAULT_CONFIG = Object.freeze({
   _v: 4,
+  _customCols: false,
   account: true,
   characters: true,
   weapons: true,
@@ -306,28 +307,28 @@ export function normalizeConfig(raw = {}, model) {
   if (raw.sizePreset === '1980x2040') {
     c.imageWidth = 1980;
     c.imageHeight = 2040;
-    if (raw.charCols == null || raw._v === 4) c.charCols = 8;
-    if (raw.weaponCols == null || raw._v === 4) c.weaponCols = 15;
+    if (raw.charCols == null) c.charCols = 8;
+    if (raw.weaponCols == null) c.weaponCols = 15;
   } else if (raw.sizePreset === '1920x1080') {
     c.imageWidth = 1920;
     c.imageHeight = 1080;
-    if (raw.charCols == null || raw._v === 4) c.charCols = 9;
-    if (raw.weaponCols == null || raw._v === 4) c.weaponCols = 16;
+    if (raw.charCols == null) c.charCols = 9;
+    if (raw.weaponCols == null) c.weaponCols = 16;
   } else if (raw.sizePreset === '2560x1440') {
     c.imageWidth = 2560;
     c.imageHeight = 1440;
-    if (raw.charCols == null || raw._v === 4) c.charCols = 8;
-    if (raw.weaponCols == null || raw._v === 4) c.weaponCols = 14;
+    if (raw.charCols == null) c.charCols = 8;
+    if (raw.weaponCols == null) c.weaponCols = 14;
   } else if (raw.sizePreset === '1080x1920') {
     c.imageWidth = 1080;
     c.imageHeight = 1920;
-    if (raw.charCols == null || raw._v === 4) c.charCols = 5;
-    if (raw.weaponCols == null || raw._v === 4) c.weaponCols = 8;
+    if (raw.charCols == null) c.charCols = 5;
+    if (raw.weaponCols == null) c.weaponCols = 8;
   } else if (raw.sizePreset === '2048x2048') {
     c.imageWidth = 2048;
     c.imageHeight = 2048;
-    if (raw.charCols == null || raw._v === 4) c.charCols = 8;
-    if (raw.weaponCols == null || raw._v === 4) c.weaponCols = 16;
+    if (raw.charCols == null) c.charCols = 8;
+    if (raw.weaponCols == null) c.weaponCols = 16;
   } else if (raw.sizePreset === 'custom') {
     if (Number.isFinite(Number(raw.imageWidth)))
       c.imageWidth = Math.max(800, Math.min(3840, Math.floor(Number(raw.imageWidth))));
