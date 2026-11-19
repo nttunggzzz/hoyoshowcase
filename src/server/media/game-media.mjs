@@ -8,7 +8,7 @@ export function gameImageUrl(encoded) {
   }
   const allowed =
     (url.hostname === 'act-webstatic.hoyoverse.com' &&
-      /^\/(?:hk4e|game_record\/genshin)\//.test(url.pathname)) ||
+      /^\/(?:hk4e|hkrpg|game_record\/(?:genshin|hkrpg))\//.test(url.pathname)) ||
     (url.hostname === 'fastcdn.hoyoverse.com' && /^\/static-resource-v2\//.test(url.pathname));
   if (
     url.protocol !== 'https:' ||

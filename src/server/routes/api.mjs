@@ -1,6 +1,8 @@
 import * as core from '../hoyolab/client.mjs';
 import * as collector from '../collection/collector.mjs';
+import * as hsrCollector from '../collection/hsr-collector.mjs';
 import { showcaseModel } from '../models/showcase.mjs';
+import { hsrShowcaseModel } from '../models/hsr-showcase.mjs';
 import { getPityDataForUid } from '../pity.mjs';
 import { HttpError } from '../http.mjs';
 
@@ -54,26 +56,62 @@ export async function dispatchApi(pathname, input, c, { publishSnapshot, onPersi
     case '/api/chronicle':
       result = await core.chronicle(c, !!input.detail);
       break;
-    case '/api/collector/start':
-      result = { ok: true, collection: collector.startCollection(c) };
-      c.collection.done
-        .then((snapshot) => {
-          if (snapshot.state === 'complete') return publishSnapshot(snapshot);
-        })
-        .catch(onPersistenceError);
+    case '/api/collector/start': {
+      const isHsr =
+        input?.game === 'hsr' || c.roles?.find((r) => r.uid === c.selected?.uid)?.game === 'hsr';
+      if (isHsr) {
+        result = { ok: true, collection: hsrCollector.startHsrCollection(c) };
+        c.hsrCollection.promise
+          .then((snapshot) => {
+            if (snapshot.state === 'complete') return publishSnapshot(snapshot);
+          })
+          .catch(onPersistenceError);
+      } else {
+        result = { ok: true, collection: collector.startCollection(c) };
+        c.collection.done
+          .then((snapshot) => {
+            if (snapshot.state === 'complete') return publishSnapshot(snapshot);
+          })
+          .catch(onPersistenceError);
+      }
       break;
-    case '/api/collector/status':
-      result = { ok: true, collection: collector.collectionStatus(c) };
+    }
+    case '/api/collector/status': {
+      const isHsr = input?.game === 'hsr' || (c.hsrCollection && !c.collection);
+      result = {
+        ok: true,
+        collection: isHsr ? hsrCollector.hsrCollectionStatus(c) : collector.collectionStatus(c),
+      };
       break;
-    case '/api/collector/view':
-      result = { ok: true, view: showcaseModel(c.collection?.snapshot) };
+    }
+    case '/api/collector/view': {
+      const isHsr =
+        input?.game === 'hsr' || c.hsrCollection?.snapshot?.schema === 'hsr-battle-chronicle-v1';
+      result = {
+        ok: true,
+        view: isHsr
+          ? hsrShowcaseModel(c.hsrCollection?.snapshot)
+          : showcaseModel(c.collection?.snapshot),
+      };
       break;
-    case '/api/collector/export':
-      result = { ok: true, snapshot: collector.exportCollection(c) };
+    }
+    case '/api/collector/export': {
+      const isHsr =
+        input?.game === 'hsr' || c.hsrCollection?.snapshot?.schema === 'hsr-battle-chronicle-v1';
+      result = {
+        ok: true,
+        snapshot: isHsr ? hsrCollector.exportHsrCollection(c) : collector.exportCollection(c),
+      };
       break;
-    case '/api/collector/cancel':
-      result = { ok: true, collection: collector.cancelCollection(c) };
+    }
+    case '/api/collector/cancel': {
+      const isHsr = input?.game === 'hsr' || (c.hsrCollection && !c.collection);
+      result = {
+        ok: true,
+        collection: isHsr ? hsrCollector.cancelHsrCollection(c) : collector.cancelCollection(c),
+      };
       break;
+    }
     case '/api/authkey':
       result = await core.fetchAuthkey(c);
       break;

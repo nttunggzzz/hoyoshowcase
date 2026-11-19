@@ -416,20 +416,37 @@ export async function getRoles(c, route = 'roles') {
     retryRead: true,
   });
   demand(Array.isArray(d.list), 'API game role thiếu list.');
+  const allowedRegions = [
+    'os_asia',
+    'os_usa',
+    'os_euro',
+    'os_cht',
+    'prod_official_asia',
+    'prod_official_usa',
+    'prod_official_euro',
+    'prod_official_eur',
+    'prod_official_cht',
+  ];
   c.roles = d.list
     .filter(
       (x) =>
-        (!x.game_biz || x.game_biz === 'hk4e_global') &&
-        ['os_asia', 'os_usa', 'os_euro', 'os_cht'].includes(x.region),
+        (!x.game_biz || x.game_biz === 'hk4e_global' || x.game_biz === 'hkrpg_global') &&
+        allowedRegions.includes(x.region),
     )
     .map((x) => ({
       uid: String(x.game_uid),
       server: x.region,
       nickname: String(x.nickname ?? ''),
       level: x.level,
+      gameBiz: x.game_biz || 'hk4e_global',
+      game: (x.game_biz || '').startsWith('hkrpg') ? 'hsr' : 'genshin',
     }));
   for (const r of c.roles)
-    demand(uidServer(r.uid) === r.server, 'UID/server do API trả không khớp bảng nhận diện.');
+    demand(
+      uidServer(r.uid, r.gameBiz) === r.server ||
+        (r.server === 'prod_official_eur' && uidServer(r.uid, r.gameBiz) === 'prod_official_euro'),
+      'UID/server do API trả không khớp bảng nhận diện.',
+    );
   return { ok: true, stage: route, roles: c.roles };
 }
 export function selectRole(c, uid, server) {

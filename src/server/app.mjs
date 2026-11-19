@@ -2,6 +2,7 @@ import http from 'node:http';
 import { Transport, ApiError, safeStatus } from './hoyolab/client.mjs';
 import { stripCredentials } from './collection/collector.mjs';
 import { showcaseModel } from './models/showcase.mjs';
+import { hsrShowcaseModel } from './models/hsr-showcase.mjs';
 import { getPityDataForUid } from './pity.mjs';
 import { createGameMedia } from './media/game-media.mjs';
 import { createSessionStore } from './session-store.mjs';
@@ -57,7 +58,16 @@ export function createApp({
             throw new HttpError(404, 'Không tải được ảnh game.');
           }
         }
-        if (url.pathname === '/api/showcase/saved')
+        if (url.pathname === '/api/showcase/saved') {
+          const view =
+            saved?.schema === 'hsr-battle-chronicle-v1'
+              ? hsrShowcaseModel(saved, { saved: true })
+              : showcaseModel(saved, { saved: true });
+          return send(res, 200, { view });
+        }
+        if (url.pathname === '/api/showcase/saved/hsr')
+          return send(res, 200, { view: hsrShowcaseModel(saved, { saved: true }) });
+        if (url.pathname === '/api/showcase/saved/genshin')
           return send(res, 200, { view: showcaseModel(saved, { saved: true }) });
         if (url.pathname === '/api/showcase/archive') {
           if (!saved) throw new HttpError(404, 'Chưa có bản dữ liệu đã lưu.');

@@ -15,4 +15,8 @@ export const URLS = Object.freeze({
   authkey: 'https://api-account-os.hoyoverse.com/binding/api/genAuthKeyByCookieToken',
   wishes: 'https://public-operation-hk4e-sg.hoyoverse.com/gacha_info/api/getGachaLog',
   redeem: 'https://sg-hk4e-api.hoyoverse.com/common/apicdkey/api/webExchangeCdkey',
+  hsrIndex: 'https://sg-public-api.hoyolab.com/event/game_record/hkrpg/api/index',
+  hsrAvatarInfo: 'https://sg-public-api.hoyolab.com/event/game_record/hkrpg/api/avatar/info',
+  hsrChallenge: 'https://sg-public-api.hoyolab.com/event/game_record/hkrpg/api/challenge',
+  hsrRogue: 'https://sg-public-api.hoyolab.com/event/game_record/hkrpg/api/rogue',
 });
