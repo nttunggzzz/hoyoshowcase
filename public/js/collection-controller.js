@@ -186,7 +186,12 @@ async function action(fn) {
   try {
     await fn();
   } catch (e) {
-    message(e.message || 'Chưa hoàn thành yêu cầu.');
+    const msg = e.message || 'Chưa hoàn thành yêu cầu.';
+    message(msg);
+    if (msg.includes('-3208')) {
+      const details = $('collector-cookies-details');
+      if (details) details.open = true;
+    }
   } finally {
     busy = false;
     controls();
@@ -484,7 +489,10 @@ window.addEventListener('message', (e) => {
   if (e.data?.kind === 'captcha-ready' && challenge)
     e.source.postMessage({ kind: 'challenge', challenge }, '*');
   if (e.data?.kind === 'captcha-result')
-    action(async () => afterAuth(await api('captcha', { validation: e.data.validation })));
+    action(async () => {
+      message('Đang xác minh mã CAPTCHA với HoYoLAB…');
+      await afterAuth(await api('captcha', { validation: e.data.validation }));
+    });
 });
 fetch('/api/session')
   .then((r) => r.json())

@@ -8,6 +8,8 @@ function errorLabel(retcode) {
   return (
     {
       '-100': 'Credential thiếu, không hợp lệ hoặc đã hết hạn.',
+      '-3208':
+        'Xác minh CAPTCHA thất bại hoặc phiên bị HoYoLAB từ chối (mã -3208). Hãy thử lại hoặc dùng mục "Dùng cookie HoYoLAB đã có" để kết nối ngay.',
       10102: 'Dữ liệu chưa công khai hoặc endpoint không cho phép xem.',
       1034: 'Battle Chronicle yêu cầu xác minh bổ sung; PoC dừng ở đây.',
       10035: 'API yêu cầu CAPTCHA bổ sung; PoC dừng ở đây.',

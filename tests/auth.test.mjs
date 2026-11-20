@@ -470,3 +470,19 @@ test('redeemCode validates input and calls upstream giftcode endpoint', async ()
   assert.ok(f.calls[0].url.startsWith(c.URLS.redeem));
   assert.match(f.calls[0].headers.Cookie, /cookie_token_v2=TEST_COOKIE_TOKEN/);
 });
+
+test('retcode -3208 provides clear guidance and resets aigis proof on rejection', async () => {
+  const f = fake([response({}, -3208)]);
+  f.ctx.flow = {
+    profile: 'hoyolab_web',
+    device: '00000000-0000-4000-8000-000000000000',
+    body: { account: 'test', password: 'pwd' },
+    challenge: 'test-session',
+    proof: {},
+  };
+  await assert.rejects(
+    () => c.submitCaptcha(f.ctx, { geetest_challenge: 'ch', geetest_validate: 'va' }),
+    (err) => err instanceof c.ApiError && err.retcode === -3208 && err.message.includes('-3208'),
+  );
+  assert.equal(f.ctx.flow.proof['x-rpc-aigis'], undefined);
+});

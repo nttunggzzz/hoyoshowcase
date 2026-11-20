@@ -336,7 +336,12 @@ export async function submitCaptcha(c, v) {
     return sendOtp(c);
   }
   f.proof['x-rpc-aigis'] = aigis;
-  return login(c);
+  try {
+    return await login(c);
+  } catch (err) {
+    if (f?.proof) delete f.proof['x-rpc-aigis'];
+    throw err;
+  }
 }
 export async function refreshCaptcha(c) {
   const f = c.flow;
