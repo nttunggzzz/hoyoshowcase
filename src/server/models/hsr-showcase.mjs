@@ -1,3 +1,15 @@
+function normalizeHsrIcon(url, fallback) {
+  if (
+    typeof url === 'string' &&
+    url.startsWith('http') &&
+    !url.includes('/game_record/hkrpg/avatar/') &&
+    !url.includes('/game_record/hkrpg/equip/')
+  ) {
+    return url;
+  }
+  return fallback;
+}
+
 /**
  * Normalizes an HSR battle chronicle snapshot into a clean, typed showcase model.
  */
@@ -18,6 +30,9 @@ export function hsrShowcaseModel(snapshot, { saved = false } = {}) {
       : [];
 
   const characters = rawAvatars.map((a) => {
+    const charIconFallback = `https://cdn.jsdelivr.net/gh/Mar-7th/StarRailRes@master/icon/character/${a.id}.png`;
+    const charIcon = normalizeHsrIcon(a.icon, charIconFallback);
+
     const equip = a.equip
       ? {
           id: a.equip.id,
@@ -25,7 +40,10 @@ export function hsrShowcaseModel(snapshot, { saved = false } = {}) {
           rarity: Number(a.equip.rarity),
           level: Number(a.equip.level),
           rank: Number(a.equip.rank ?? 1),
-          icon: a.equip.icon,
+          icon: normalizeHsrIcon(
+            a.equip.icon,
+            `https://cdn.jsdelivr.net/gh/Mar-7th/StarRailRes@master/icon/light_cone/${a.equip.id}.png`,
+          ),
         }
       : null;
 
@@ -36,7 +54,10 @@ export function hsrShowcaseModel(snapshot, { saved = false } = {}) {
           level: Number(r.level),
           pos: Number(r.pos),
           rarity: Number(r.rarity),
-          icon: r.icon,
+          icon: normalizeHsrIcon(
+            r.icon,
+            `https://cdn.jsdelivr.net/gh/Mar-7th/StarRailRes@master/icon/relic/${r.id}.png`,
+          ),
         }))
       : [];
 
@@ -47,7 +68,10 @@ export function hsrShowcaseModel(snapshot, { saved = false } = {}) {
           level: Number(o.level),
           pos: Number(o.pos),
           rarity: Number(o.rarity),
-          icon: o.icon,
+          icon: normalizeHsrIcon(
+            o.icon,
+            `https://cdn.jsdelivr.net/gh/Mar-7th/StarRailRes@master/icon/relic/${o.id}.png`,
+          ),
         }))
       : [];
 
@@ -87,7 +111,7 @@ export function hsrShowcaseModel(snapshot, { saved = false } = {}) {
     const constellations = [1, 2, 3, 4, 5, 6].map((i) => ({
       id: i,
       name: `Tinh Hồn Tầng ${i}`,
-      icon: a.icon,
+      icon: charIcon,
       is_actived: Number(a.rank ?? 0) >= i,
       pos: i,
       effect: `Mở khóa hiệu ứng Tinh Hồn Tầng ${i} gia tăng năng lực chiến đấu.`,
@@ -97,25 +121,25 @@ export function hsrShowcaseModel(snapshot, { saved = false } = {}) {
       {
         name: 'Tấn Công Thường',
         level: Math.min(6, Math.max(1, Math.floor(Number(a.level || 80) / 15))),
-        icon: a.icon,
+        icon: charIcon,
         desc: 'Gây sát thương thuộc tính đơn mục tiêu.',
       },
       {
         name: 'Chiến Kỹ',
         level: Math.min(10, Math.max(1, Math.floor(Number(a.level || 80) / 8))),
-        icon: a.icon,
+        icon: charIcon,
         desc: 'Kích hoạt kỹ năng đặc trưng diện rộng.',
       },
       {
         name: 'Tuyệt Kỹ',
         level: Math.min(10, Math.max(1, Math.floor(Number(a.level || 80) / 8))),
-        icon: a.icon,
+        icon: charIcon,
         desc: 'Bộc phát sức mạnh tối thượng diệt trừ kẻ địch.',
       },
       {
         name: 'Thiên Phú',
         level: Math.min(10, Math.max(1, Math.floor(Number(a.level || 80) / 8))),
-        icon: a.icon,
+        icon: charIcon,
         desc: 'Hiệu ứng bị động cường hóa toàn đội.',
       },
     ];
@@ -129,8 +153,8 @@ export function hsrShowcaseModel(snapshot, { saved = false } = {}) {
       actived_constellation_num: Number(a.rank ?? 0),
       element: a.element ?? a.damage_type,
       path: a.path ?? a.avatar_type,
-      icon: a.icon,
-      image: a.image || a.icon,
+      icon: charIcon,
+      image: charIcon,
       equip,
       weapon,
       relics: [...relics, ...ornaments],
@@ -184,7 +208,7 @@ export function hsrShowcaseModel(snapshot, { saved = false } = {}) {
       exploration_percentage: 1000,
       level: 10,
       background_image: '/assets/backgrounds/columbina-319f3efd.jpg',
-      icon: 'https://act-webstatic.hoyoverse.com/game_record/hkrpg/avatar/1004.png',
+      icon: 'https://cdn.jsdelivr.net/gh/Mar-7th/StarRailRes@master/icon/character/1004.png',
     },
     {
       id: 'jarilo_vi',
@@ -192,7 +216,7 @@ export function hsrShowcaseModel(snapshot, { saved = false } = {}) {
       exploration_percentage: 980,
       level: 10,
       background_image: '/assets/backgrounds/flins-d6d28443.jpg',
-      icon: 'https://act-webstatic.hoyoverse.com/game_record/hkrpg/avatar/1102.png',
+      icon: 'https://cdn.jsdelivr.net/gh/Mar-7th/StarRailRes@master/icon/character/1102.png',
     },
     {
       id: 'xianzhou_luofu',
@@ -200,7 +224,7 @@ export function hsrShowcaseModel(snapshot, { saved = false } = {}) {
       exploration_percentage: 950,
       level: 10,
       background_image: '/assets/backgrounds/zibai-40a00d1d.jpg',
-      icon: 'https://act-webstatic.hoyoverse.com/game_record/hkrpg/avatar/1205.png',
+      icon: 'https://cdn.jsdelivr.net/gh/Mar-7th/StarRailRes@master/icon/character/1205.png',
     },
     {
       id: 'penacony',
@@ -208,7 +232,7 @@ export function hsrShowcaseModel(snapshot, { saved = false } = {}) {
       exploration_percentage: 920,
       level: 10,
       background_image: '/assets/backgrounds/nefer-4e007746.jpg',
-      icon: 'https://act-webstatic.hoyoverse.com/game_record/hkrpg/avatar/1308.png',
+      icon: 'https://cdn.jsdelivr.net/gh/Mar-7th/StarRailRes@master/icon/character/1308.png',
     },
   ];
 

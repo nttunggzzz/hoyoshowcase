@@ -184,12 +184,23 @@ async function afterAuth(j) {
   if (j.stage?.endsWith('_login') && j.stage !== 'hoyolab_web_login') {
     message('Đăng nhập thành công. Đang chuẩn bị cookie và tìm game role…');
     await api('exchange');
-  } else message('Đang dùng cookie web để tìm tài khoản Genshin…');
+  } else message('Đang tìm tài khoản Genshin và Honkai: Star Rail…');
+  let rolesFound = false;
   try {
-    await api('roles', { route: sessionState.hasCookieTokenV2 ? 'roles' : 'labRoles' });
-  } catch (e) {
-    if (!sessionState.hasLtoken) throw e;
-    await api('roles', { route: 'labRoles' });
+    const res = await api('roles', { route: 'labRoles' });
+    if (res.roles && res.roles.length) rolesFound = true;
+  } catch {
+    if (sessionState.hasCookieTokenV2) {
+      try {
+        await api('roles', { route: 'roles' });
+        rolesFound = true;
+      } catch {}
+    }
+  }
+  if (!rolesFound && sessionState.hasCookieTokenV2) {
+    try {
+      await api('roles', { route: 'roles' });
+    } catch {}
   }
   if (sessionState.roles.length === 1) {
     const r = sessionState.roles[0];
@@ -198,8 +209,8 @@ async function afterAuth(j) {
   } else
     message(
       sessionState.roles.length
-        ? 'Chọn UID/server muốn lấy dữ liệu rồi bấm “Lấy toàn bộ dữ liệu”.'
-        : 'Tài khoản này chưa trả game role Genshin Global.',
+        ? 'Chọn UID/server muốn lấy dữ liệu (Genshin hoặc Star Rail) rồi bấm “Lấy toàn bộ dữ liệu”.'
+        : 'Tài khoản này chưa trả game role Genshin hoặc Honkai: Star Rail.',
     );
 }
 async function begin() {
@@ -263,6 +274,7 @@ async function poll(epoch = jobEpoch) {
       if (viewResult?.view) {
         if (isHsr) {
           window.dispatchEvent(new CustomEvent('hsr:update-data', { detail: viewResult.view }));
+          window.dispatchEvent(new CustomEvent('hsr:rendered', { detail: viewResult.view }));
         } else {
           window.dispatchEvent(new CustomEvent('showcase:rendered', { detail: viewResult.view }));
         }

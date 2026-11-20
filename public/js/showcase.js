@@ -160,11 +160,52 @@ el('showcase-export').addEventListener('click', () => {
   if (lastJob?.hasSnapshot && !el('collector-download').disabled) el('collector-download').click();
   else {
     const a = document.createElement('a');
-    a.href = '/api/showcase/archive';
-    a.download = 'battle-chronicle.json';
+    a.href = '/api/showcase/archive/genshin';
+    a.download = `battle-chronicle-genshin-${model.profile?.uid || 'latest'}.json`;
     a.click();
   }
 });
+
+const showcaseImport = el('showcase-import');
+if (showcaseImport) {
+  showcaseImport.addEventListener('change', async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const snap = JSON.parse(text);
+      let csrf = csrfToken;
+      if (!csrf) {
+        try {
+          const sRes = await fetch('/api/session');
+          const sData = await sRes.json();
+          csrf = sData.csrf;
+          csrfToken = csrf;
+        } catch {}
+      }
+      const res = await fetch('/api/showcase/import', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-poc-csrf': csrf,
+        },
+        body: JSON.stringify(snap),
+      });
+      const data = await res.json();
+      if (data?.ok && data.view) {
+        renderShowcase(data.view);
+        window.dispatchEvent(new CustomEvent('showcase:rendered', { detail: data.view }));
+        notify('Đã nạp tệp dữ liệu Genshin Impact thành công!');
+      } else {
+        notify('Lỗi nạp tệp: ' + (data?.error || 'Định dạng JSON không hợp lệ'));
+      }
+    } catch (err) {
+      notify('Lỗi đọc tệp JSON: ' + (err.message || err));
+    } finally {
+      showcaseImport.value = '';
+    }
+  });
+}
 window.addEventListener('chronicle:session', (e) => {
   session = e.detail.status;
   csrfToken = e.detail.csrf || csrfToken;

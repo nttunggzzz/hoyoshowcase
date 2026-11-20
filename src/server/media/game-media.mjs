@@ -9,7 +9,11 @@ export function gameImageUrl(encoded) {
   const allowed =
     (url.hostname === 'act-webstatic.hoyoverse.com' &&
       /^\/(?:hk4e|hkrpg|game_record\/(?:genshin|hkrpg))\//.test(url.pathname)) ||
-    (url.hostname === 'fastcdn.hoyoverse.com' && /^\/static-resource-v2\//.test(url.pathname));
+    (url.hostname === 'fastcdn.hoyoverse.com' && /^\/static-resource-v2\//.test(url.pathname)) ||
+    (url.hostname === 'cdn.jsdelivr.net' &&
+      /^\/gh\/Mar-7th\/StarRailRes(@[^/]+)?\/icon\//.test(url.pathname)) ||
+    (url.hostname === 'raw.githubusercontent.com' &&
+      /^\/Mar-7th\/StarRailRes\/[^/]+\/icon\//.test(url.pathname));
   if (
     url.protocol !== 'https:' ||
     !allowed ||
@@ -32,11 +36,22 @@ export function createGameMedia(fetcher = fetch) {
     if (cache.has(url)) return cache.get(url);
     if (pending.has(url)) return pending.get(url);
     const promise = (async () => {
-      const r = await fetcher(url, {
+      let r = await fetcher(url, {
         redirect: 'error',
         signal: AbortSignal.timeout(15000),
         headers: { Accept: 'image/png,image/webp,image/jpeg' },
       });
+      if (!r.ok && url.includes('cdn.jsdelivr.net/gh/Mar-7th/StarRailRes')) {
+        const fallbackUrl = url.replace(
+          'https://cdn.jsdelivr.net/gh/Mar-7th/StarRailRes@master/',
+          'https://raw.githubusercontent.com/Mar-7th/StarRailRes/master/',
+        );
+        r = await fetcher(fallbackUrl, {
+          redirect: 'error',
+          signal: AbortSignal.timeout(15000),
+          headers: { Accept: 'image/png,image/webp,image/jpeg' },
+        });
+      }
       const type = r.headers.get('content-type')?.split(';')[0];
       if (!r.ok || !['image/png', 'image/webp', 'image/jpeg'].includes(type))
         throw Error('Không đọc được ảnh game.');

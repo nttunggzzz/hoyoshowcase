@@ -15,7 +15,7 @@ const DOCUMENTS = new Set([
   'styles.css',
 ]);
 const CSP =
-  "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://act-webstatic.hoyoverse.com https://fastcdn.hoyoverse.com; font-src 'self'; connect-src 'self'; frame-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'";
+  "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://act-webstatic.hoyoverse.com https://fastcdn.hoyoverse.com https://cdn.jsdelivr.net https://raw.githubusercontent.com; font-src 'self'; connect-src 'self'; frame-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'";
 const CAPTCHA_CSP =
   "default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.geetest.com https://*.geevisit.com https://*.geetest.cn https://*.captchami.com; style-src 'unsafe-inline' https://*.geetest.com https://*.geevisit.com; img-src data: https://*.geetest.com https://*.geevisit.com https://*.geetest.cn https://*.captchami.com; connect-src https://*.geetest.com https://*.geevisit.com https://*.geetest.cn https://*.captchami.com; frame-src https://*.geetest.com https://*.geevisit.com https://*.captchami.com; base-uri 'none'; form-action 'none'; frame-ancestors 'self'";
 const MIME = {

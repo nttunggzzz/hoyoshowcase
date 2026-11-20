@@ -407,12 +407,12 @@ export function importCookies(c, raw) {
     hasCookieTokenV2: !!cookies.cookie_token_v2,
   };
 }
-export async function getRoles(c, route = 'roles') {
+export async function getRoles(c, route = 'roles', gameBiz = null) {
   demand(['roles', 'labRoles'].includes(route), 'Đường game role không hợp lệ.');
   const d = await c.transport.data(route, {
     headers:
       route === 'roles' ? { Cookie: cookieHeader(c.cookies, ACCOUNT_KEYS) } : labHeaders(c.cookies),
-    params: route === 'roles' ? { game_biz: 'hk4e_global' } : undefined,
+    params: route === 'roles' && gameBiz ? { game_biz: gameBiz } : undefined,
     retryRead: true,
   });
   demand(Array.isArray(d.list), 'API game role thiếu list.');

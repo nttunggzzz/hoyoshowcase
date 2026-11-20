@@ -10,6 +10,33 @@ import { HttpError } from '../http.mjs';
 export async function dispatchApi(pathname, input, c, { publishSnapshot, onPersistenceError }) {
   let result;
   switch (pathname) {
+    case '/api/showcase/import': {
+      const snap = input.snapshot || input;
+      if (!snap || typeof snap !== 'object' || !snap.schema) {
+        throw new HttpError(400, 'Tệp JSON không đúng định dạng Battle Chronicle.');
+      }
+      if (snap.schema === 'hsr-battle-chronicle-v1') {
+        if (publishSnapshot) await publishSnapshot(snap);
+        result = {
+          ok: true,
+          game: 'hsr',
+          view: hsrShowcaseModel(snap, { saved: true }),
+        };
+      } else if (snap.schema === 'genshin-battle-chronicle-v1') {
+        if (publishSnapshot) await publishSnapshot(snap);
+        result = {
+          ok: true,
+          game: 'genshin',
+          view: showcaseModel(snap, { saved: true }),
+        };
+      } else {
+        throw new HttpError(
+          400,
+          'Schema không được hỗ trợ. Chỉ chấp nhận genshin-battle-chronicle-v1 hoặc hsr-battle-chronicle-v1.',
+        );
+      }
+      break;
+    }
     case '/api/showcase':
       result = await core.showcase(c, String(input.uid));
       break;
@@ -48,7 +75,7 @@ export async function dispatchApi(pathname, input, c, { publishSnapshot, onPersi
       delete input.cookies;
       break;
     case '/api/roles':
-      result = await core.getRoles(c, input.route);
+      result = await core.getRoles(c, input.route, input.gameBiz);
       break;
     case '/api/select':
       result = core.selectRole(c, String(input.uid), String(input.server));

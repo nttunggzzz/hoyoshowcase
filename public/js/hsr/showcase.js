@@ -13,10 +13,13 @@ const asset = (url) => {
   if (typeof url === 'string' && /^\/assets\/native\/[A-Za-z0-9_.-]+\.png$/.test(url)) return url;
   try {
     const u = new URL(url);
-    return u.protocol === 'https:' &&
-      ['act-webstatic.hoyoverse.com', 'fastcdn.hoyoverse.com'].includes(u.hostname)
-      ? u.href
-      : '';
+    const isAllowedHost =
+      ['act-webstatic.hoyoverse.com', 'fastcdn.hoyoverse.com'].includes(u.hostname) ||
+      (u.hostname === 'cdn.jsdelivr.net' &&
+        /^\/gh\/Mar-7th\/StarRailRes(@[^/]+)?\/icon\//.test(u.pathname)) ||
+      (u.hostname === 'raw.githubusercontent.com' &&
+        /^\/Mar-7th\/StarRailRes\/[^/]+\/icon\//.test(u.pathname));
+    return u.protocol === 'https:' && isAllowedHost ? u.href : '';
   } catch {
     return '';
   }
@@ -50,6 +53,15 @@ const PATHS = {
   Abundance: 'Trù Phú',
   Remembrance: 'Ký Ức',
 };
+
+function notify(text) {
+  const n = el('showcase-notice');
+  if (!n) return;
+  n.textContent = text;
+  n.hidden = false;
+  clearTimeout(notify.timer);
+  notify.timer = setTimeout(() => (n.hidden = true), 4500);
+}
 
 let hsrModel = null,
   elementFilter = 'All',
@@ -160,16 +172,49 @@ function setupEventListeners() {
   const exportBtn = el('hsr-export');
   if (exportBtn) {
     exportBtn.addEventListener('click', () => {
-      if (!hsrModel) return;
-      const blob = new Blob([JSON.stringify(hsrModel, null, 2)], {
-        type: 'application/json; charset=utf-8',
-      });
-      const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = url;
-      a.download = `hsr-battle-chronicle-${hsrModel.profile?.uid || 'latest'}.json`;
+      a.href = '/api/showcase/archive/hsr';
+      a.download = `battle-chronicle-hsr-${hsrModel?.profile?.uid || 'latest'}.json`;
       a.click();
-      URL.revokeObjectURL(url);
+    });
+  }
+
+  const importInput = el('hsr-import');
+  if (importInput) {
+    importInput.addEventListener('change', async (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      try {
+        const text = await file.text();
+        const snap = JSON.parse(text);
+        let csrf = '';
+        try {
+          const sRes = await fetch('/api/session');
+          const sData = await sRes.json();
+          csrf = sData.csrf;
+        } catch {}
+        const res = await fetch('/api/showcase/import', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-poc-csrf': csrf,
+          },
+          body: JSON.stringify(snap),
+        });
+        const data = await res.json();
+        if (data?.ok && data.view) {
+          renderHsr(data.view);
+          window.dispatchEvent(new CustomEvent('hsr:update-data', { detail: data.view }));
+          window.dispatchEvent(new CustomEvent('hsr:rendered', { detail: data.view }));
+          notify('Đã nạp tệp dữ liệu Star Rail thành công!');
+        } else {
+          notify('Lỗi nạp tệp: ' + (data?.error || 'Định dạng JSON không hợp lệ'));
+        }
+      } catch (err) {
+        notify('Lỗi đọc tệp JSON: ' + (err.message || err));
+      } finally {
+        importInput.value = '';
+      }
     });
   }
 

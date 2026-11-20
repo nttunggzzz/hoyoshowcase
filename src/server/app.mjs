@@ -87,10 +87,25 @@ export function createApp({
             savedGenshin || (saved?.schema === 'genshin-battle-chronicle-v1' ? saved : null);
           return send(res, 200, { view: showcaseModel(genshinTarget, { saved: true }) });
         }
+        if (url.pathname === '/api/showcase/archive/hsr') {
+          const target = savedHsr || (saved?.schema === 'hsr-battle-chronicle-v1' ? saved : null);
+          if (!target) throw new HttpError(404, 'Chưa có bản dữ liệu Star Rail đã lưu.');
+          return send(res, 200, target, 'application/json; charset=utf-8', {
+            'Content-Disposition': `attachment; filename="battle-chronicle-hsr-${target.role?.uid || 'latest'}.json"`,
+          });
+        }
+        if (url.pathname === '/api/showcase/archive/genshin') {
+          const target =
+            savedGenshin || (saved?.schema === 'genshin-battle-chronicle-v1' ? saved : null);
+          if (!target) throw new HttpError(404, 'Chưa có bản dữ liệu Genshin đã lưu.');
+          return send(res, 200, target, 'application/json; charset=utf-8', {
+            'Content-Disposition': `attachment; filename="battle-chronicle-genshin-${target.role?.uid || 'latest'}.json"`,
+          });
+        }
         if (url.pathname === '/api/showcase/archive') {
           if (!saved) throw new HttpError(404, 'Chưa có bản dữ liệu đã lưu.');
           return send(res, 200, saved, 'application/json; charset=utf-8', {
-            'Content-Disposition': `attachment; filename="battle-chronicle-${saved.role.uid}.json"`,
+            'Content-Disposition': `attachment; filename="battle-chronicle-${saved.role?.uid || 'latest'}.json"`,
           });
         }
         if (url.pathname.startsWith('/api/pity/')) {

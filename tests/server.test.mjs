@@ -121,3 +121,76 @@ test('product, module and HTML docs routes work without exposing source or local
     await new Promise((resolve) => server.close(resolve));
   }
 });
+test('showcase archive and import routes support both Genshin and HSR snapshots', async () => {
+  const genshinSnap = {
+    schema: 'genshin-battle-chronicle-v1',
+    id: 'snap-genshin-1',
+    role: { uid: '800000001', server: 'os_asia', nickname: 'Traveler', level: 60 },
+    sections: {
+      overview: { data: { stats: {} } },
+      characters: { data: { list: [] } },
+    },
+  };
+  const hsrSnap = {
+    schema: 'hsr-battle-chronicle-v1',
+    id: 'snap-hsr-1',
+    role: { uid: '810000001', server: 'prod_official_asia', nickname: 'Trailblazer', level: 70 },
+    sections: {
+      overview: { data: { stats: {} } },
+      characters: { data: { avatar_list: [] } },
+    },
+  };
+  let savedSnapshots = [];
+  const server = createApp({
+    savedSnapshot: genshinSnap,
+    savedHsrSnapshot: hsrSnap,
+    onSnapshot: async (s) => savedSnapshots.push(s),
+  });
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  const origin = `http://127.0.0.1:${server.address().port}`;
+  try {
+    const rG = await fetch(origin + '/api/showcase/archive/genshin');
+    assert.equal(rG.status, 200);
+    const jG = await rG.json();
+    assert.equal(jG.schema, 'genshin-battle-chronicle-v1');
+
+    const rH = await fetch(origin + '/api/showcase/archive/hsr');
+    assert.equal(rH.status, 200);
+    const jH = await rH.json();
+    assert.equal(jH.schema, 'hsr-battle-chronicle-v1');
+
+    const sRes = await fetch(origin + '/api/session');
+    const { csrf } = await sRes.json();
+    const cookie = sRes.headers.get('set-cookie')?.split(';')[0];
+
+    const impHsr = await fetch(origin + '/api/showcase/import', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-poc-csrf': csrf,
+        Cookie: cookie,
+        Origin: origin,
+      },
+      body: JSON.stringify(hsrSnap),
+    });
+    assert.equal(impHsr.status, 200);
+    const resH = await impHsr.json();
+    assert.equal(resH.ok, true);
+    assert.equal(resH.game, 'hsr');
+    assert.equal(resH.view.game, 'hsr');
+
+    const impBad = await fetch(origin + '/api/showcase/import', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-poc-csrf': csrf,
+        Cookie: cookie,
+        Origin: origin,
+      },
+      body: JSON.stringify({ schema: 'unknown-v1' }),
+    });
+    assert.equal(impBad.status, 400);
+  } finally {
+    await new Promise((resolve) => server.close(resolve));
+  }
+});

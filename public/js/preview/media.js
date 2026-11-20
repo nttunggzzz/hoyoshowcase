@@ -5,8 +5,13 @@ export function gameImageSource(url) {
   if (url.startsWith('data:image/')) return url;
   try {
     const u = new URL(url);
-    return u.protocol === 'https:' &&
-      ['act-webstatic.hoyoverse.com', 'fastcdn.hoyoverse.com'].includes(u.hostname)
+    const isAllowedHost =
+      ['act-webstatic.hoyoverse.com', 'fastcdn.hoyoverse.com'].includes(u.hostname) ||
+      (u.hostname === 'cdn.jsdelivr.net' &&
+        /^\/gh\/Mar-7th\/StarRailRes(@[^/]+)?\/icon\//.test(u.pathname)) ||
+      (u.hostname === 'raw.githubusercontent.com' &&
+        /^\/Mar-7th\/StarRailRes\/[^/]+\/icon\//.test(u.pathname));
+    return u.protocol === 'https:' && isAllowedHost
       ? '/media/' + btoa(u.href).replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '')
       : '';
   } catch {
