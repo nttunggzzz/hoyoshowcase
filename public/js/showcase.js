@@ -587,7 +587,14 @@ for (const id of ['tab-characters', 'tab-weapons'])
     }
   });
 
-window.addEventListener('showcase:open-character', (e) => openCharacter(Number(e.detail.id)));
+window.addEventListener('showcase:open-character', (e) => {
+  const activeGame = localStorage.getItem('hoyoshowcase.activeGame');
+  if (activeGame === 'hsr') {
+    window.dispatchEvent(new CustomEvent('hsr:open-character', { detail: e.detail }));
+  } else {
+    openCharacter(Number(e.detail.id));
+  }
+});
 
 window.dispatchEvent(new Event('chronicle:request-session'));
 

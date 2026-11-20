@@ -161,9 +161,73 @@ test('hsrShowcaseModel normalizes avatars, light cones, and relics cleanly', () 
   const acheron = model.characters[0];
   assert.equal(acheron.name, 'Acheron');
   assert.equal(acheron.rank, 2);
+  assert.equal(acheron.actived_constellation_num, 2);
   assert.equal(acheron.equip?.name, 'Along the Passing Shore');
   assert.equal(acheron.equip?.rank, 1);
+  assert.equal(acheron.weapon?.affix_level, 1);
   assert.equal(acheron.relics.length, 2);
+  assert.equal(acheron.constellations.length, 6);
+  assert.equal(acheron.constellations[0].is_actived, true);
+  assert.equal(acheron.constellations[1].is_actived, true);
+  assert.equal(acheron.constellations[2].is_actived, false);
+  assert.equal(acheron.skills.length, 4);
+  assert.ok(acheron.properties.length >= 8);
+  assert.ok(model.previewFacts.length >= 5);
+  assert.ok(model.regions.length >= 4);
+});
+
+test('planPreview plans HSR showcase model with 5 columns and 2560x1440 preset', async () => {
+  const { planPreview, normalizeConfig } = await import('../src/shared/preview-config.mjs');
+  const snapshot = {
+    schema: 'hsr-battle-chronicle-v1',
+    role: { uid: '810000001', server: 'prod_official_asia', nickname: 'Acheron' },
+    sections: {
+      overview: {
+        data: {
+          stats: { active_days: 300, avatar_num: 1 },
+        },
+      },
+      characters: {
+        data: {
+          avatar_list: [
+            {
+              id: 1308,
+              name: 'Acheron',
+              rarity: 5,
+              level: 80,
+              rank: 2,
+              element: 'Thunder',
+              path: 'Nihility',
+              icon: 'https://act-webstatic.hoyoverse.com/hkrpg/avatar/acheron.png',
+              equip: {
+                id: 23025,
+                name: 'Along the Passing Shore',
+                rarity: 5,
+                level: 80,
+                rank: 1,
+                icon: 'https://act-webstatic.hoyoverse.com/hkrpg/equip/passing_shore.png',
+              },
+            },
+          ],
+        },
+      },
+    },
+  };
+  const model = hsrShowcaseModel(snapshot);
+  const config = normalizeConfig(
+    { charCols: 5, charAlign: 'bottom', sizePreset: '2560x1440', _customCols: true },
+    model,
+  );
+  assert.equal(config.charCols, 5);
+  assert.equal(config.charAlign, 'bottom');
+  assert.equal(config.sizePreset, '2560x1440');
+
+  const plan = planPreview(model, config);
+  assert.equal(plan.outputWidth, 2560);
+  assert.equal(plan.outputHeight, 1440);
+  assert.equal(plan.characters.length, 1);
+  assert.equal(plan.weapons.length, 1);
+  assert.equal(plan.error, null);
 });
 
 test('gameImageUrl accepts HSR game record image URLs', () => {

@@ -549,6 +549,219 @@
           <p>Không tìm thấy nhân vật nào phù hợp với bộ lọc hiện tại.</p>
         </div>
       </section>
+
+      <section id="hsr-account-preview" class="account-preview-section">
+        <div class="section-head">
+          <div>
+            <h2>Preview account Honkai: Star Rail</h2>
+            <p class="preview-description">
+              Tự chọn bố cục, thành tích và đội ngũ Khai Phá Astral Express.
+            </p>
+          </div>
+          <div class="preview-actions">
+            <button id="hsr-preview-settings-toggle" class="button outline" aria-expanded="true">
+              <svg
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
+                <line x1="9" x2="9" y1="3" y2="21" />
+              </svg>
+              <span>Ẩn tùy chỉnh</span>
+            </button>
+            <button id="hsr-preview-zoom" class="button outline">
+              <svg
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" x2="16.65" y1="21" y2="16.65" />
+                <line x1="11" x2="11" y1="8" y2="14" />
+                <line x1="8" x2="14" y1="11" y2="11" />
+              </svg>
+              <span>Phóng to</span>
+            </button>
+            <button
+              id="hsr-preview-copy"
+              class="button outline"
+              disabled
+              title="Sao chép ảnh vào Clipboard"
+            >
+              <svg
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
+                <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
+              </svg>
+              <span>Sao chép ảnh</span>
+            </button>
+            <button
+              id="hsr-preview-download"
+              class="button primary"
+              disabled
+              title="Tải ảnh PNG về máy"
+            >
+              <svg
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" x2="12" y1="15" y2="3" />
+              </svg>
+              <span>Tải ảnh PNG</span>
+            </button>
+          </div>
+        </div>
+        <div class="preview-workspace" id="hsr-preview-workspace">
+          <aside id="hsr-preview-customizer" aria-label="Tùy chỉnh ảnh account HSR">
+            <div id="hsr-preview-controls-body"><p>Đang đọc dữ liệu tùy chỉnh…</p></div>
+            <button id="hsr-preview-reset" class="text-button">Khôi phục mặc định</button>
+            <p class="preview-save-note">Tùy chỉnh được lưu riêng cho UID này trên trình duyệt.</p>
+          </aside>
+          <div class="preview-result">
+            <div class="preview-result-meta">
+              <div class="meta-left">
+                <p id="hsr-preview-summary"></p>
+                <output id="hsr-preview-dimensions"></output>
+              </div>
+              <div class="preview-meta-actions">
+                <button
+                  id="hsr-preview-copy-inline"
+                  class="button outline btn-action"
+                  disabled
+                  title="Sao chép ảnh (Ctrl+V để dán)"
+                >
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
+                    <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
+                  </svg>
+                  <span>Sao chép</span>
+                </button>
+                <button
+                  id="hsr-preview-download-inline"
+                  class="button primary btn-action"
+                  disabled
+                  title="Tải ảnh PNG độ nét cao"
+                >
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" x2="12" y1="15" y2="3" />
+                  </svg>
+                  <span>Tải ảnh PNG</span>
+                </button>
+              </div>
+            </div>
+            <p id="hsr-preview-error" role="alert" hidden></p>
+            <div class="preview-frame" id="hsr-preview-frame">
+              <div class="canvas-floating-toolbar" aria-label="Thao tác nhanh trên ảnh">
+                <button
+                  class="floating-btn"
+                  id="hsr-floating-copy"
+                  disabled
+                  title="Sao chép ảnh (Ctrl+V để dán)"
+                >
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
+                    <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
+                  </svg>
+                  <span>Sao chép</span>
+                </button>
+                <button
+                  class="floating-btn primary"
+                  id="hsr-floating-download"
+                  disabled
+                  title="Tải ảnh PNG về máy"
+                >
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" x2="12" y1="15" y2="3" />
+                  </svg>
+                  <span>Tải ảnh</span>
+                </button>
+              </div>
+              <canvas
+                id="hsr-account-canvas"
+                width="1600"
+                height="1000"
+                role="img"
+                aria-label="Ảnh account Star Rail theo tùy chỉnh"
+              ></canvas>
+              <p id="hsr-preview-loading" role="status">
+                Cuộn đến đây để mở Preview account Star Rail.
+              </p>
+              <p id="hsr-preview-toast" class="preview-toast" role="status" hidden></p>
+            </div>
+            <p class="preview-footnote">
+              Mẹo: Click chuột phải vào ảnh để Sao chép hoặc Tải về. Nón Ánh Sáng là các bản đang
+              trang bị. Bấm thẻ để xem chi tiết nhân vật.
+            </p>
+          </div>
+        </div>
+      </section>
     </main>
     <footer>
       <a class="wordmark" href="#overview">TEYVAT <span>ARCHIVE</span></a>

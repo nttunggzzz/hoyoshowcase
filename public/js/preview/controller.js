@@ -9,11 +9,13 @@ import { parsePityData } from './format.js';
 import { createPreviewSettings } from './settings.js';
 import { renderAccountPreview } from './renderer.js';
 
-function initializePreview() {
-  const $ = (id) => document.getElementById(id),
-    canvas = $('account-canvas'),
-    controls = $('preview-controls-body');
-  const label = (id) => PROPERTY_LABELS[id] || data?.propertyMap[id]?.name || 'Chỉ số ' + id;
+export function createPreviewManager({ game = 'genshin', prefix = '' } = {}) {
+  const $ = (id) => document.getElementById(prefix + id);
+  const canvas = $('account-canvas');
+  const controls = $('preview-controls-body');
+  if (!canvas || !controls) return;
+
+  const label = (id) => PROPERTY_LABELS[id] || data?.propertyMap?.[id]?.name || 'Chỉ số ' + id;
   let data = null,
     config = null,
     roleKey = '',
@@ -28,6 +30,7 @@ function initializePreview() {
     getData: () => data,
     getConfig: () => config,
     label,
+    prefix,
   });
   function setup() {
     settings.setup();
@@ -89,16 +92,23 @@ function initializePreview() {
   function updateSummary() {
     if (!data || !config) return;
     const p = planPreview(data, config);
-    $('preview-summary').textContent =
-      `Hiện ${config.account && config.characters ? p.characters.length : 0}/${p.allCharacters} nhân vật / ${config.account && config.weapons ? p.weapons.length : 0}/${p.allWeapons} vũ khí${config.builds ? ' / ' + p.buildCharacters.length + ' build' : ''}`;
-    $('preview-dimensions').textContent = p.outputWidth + ' × ' + p.outputHeight + ' px';
-    $('preview-error').hidden = !p.error;
-    $('preview-error').textContent = p.error ?? '';
-    $('preview-build-options').hidden = !config.builds;
+    const summaryEl = $('preview-summary');
+    if (summaryEl) {
+      summaryEl.textContent = `Hiện ${config.account && config.characters ? p.characters.length : 0}/${p.allCharacters} ${game === 'hsr' ? 'Khai Phá' : 'nhân vật'} / ${config.account && config.weapons ? p.weapons.length : 0}/${p.allWeapons} ${game === 'hsr' ? 'Nón Ánh Sáng' : 'vũ khí'}${config.builds ? ' / ' + p.buildCharacters.length + ' build' : ''}`;
+    }
+    const dimEl = $('preview-dimensions');
+    if (dimEl) dimEl.textContent = p.outputWidth + ' × ' + p.outputHeight + ' px';
+    const errEl = $('preview-error');
+    if (errEl) {
+      errEl.hidden = !p.error;
+      errEl.textContent = p.error ?? '';
+    }
+    const buildOpt = $('preview-build-options');
+    if (buildOpt) buildOpt.hidden = !config.builds;
   }
   function persist() {
     try {
-      localStorage.setItem(roleKey, JSON.stringify(config));
+      if (roleKey) localStorage.setItem(roleKey, JSON.stringify(config));
     } catch {}
   }
   function setActionsState(enabled) {
@@ -124,8 +134,11 @@ function initializePreview() {
       () =>
         draw(run).catch((e) => {
           if (run === generation) {
-            $('preview-loading').hidden = false;
-            $('preview-loading').textContent = 'Chưa dựng được ảnh: ' + e.message;
+            const loading = $('preview-loading');
+            if (loading) {
+              loading.hidden = false;
+              loading.textContent = 'Chưa dựng được ảnh: ' + e.message;
+            }
           }
         }),
       100,
@@ -134,21 +147,18 @@ function initializePreview() {
   controls.addEventListener('change', (e) => {
     const t = e.target;
     if (!config) return;
-    if (t.id === 'preview-bg-file' && t.files?.[0]) {
+    if ((t.id === 'preview-bg-file' || t.id === `${prefix}preview-bg-file`) && t.files?.[0]) {
       const file = t.files[0];
       const reader = new FileReader();
       reader.onload = () => {
         config.background = reader.result;
-        if (['charPity', 'weaponPity', 'rollsLeft', 'monthCard'].includes(t.dataset.key)) {
-          updatePityDisplay('Tùy chỉnh thủ công');
-        }
         config = normalizeConfig(config, data);
         schedule();
       };
       reader.readAsDataURL(file);
       return;
     }
-    if (t.id === 'preview-pity-file' && t.files?.[0]) {
+    if ((t.id === 'preview-pity-file' || t.id === `${prefix}preview-pity-file`) && t.files?.[0]) {
       const file = t.files[0];
       const reader = new FileReader();
       reader.onload = () => {
@@ -233,8 +243,11 @@ function initializePreview() {
       const id = Number(t.dataset.buildId);
       if (t.checked && config.buildIds.length >= 6) {
         t.checked = false;
-        $('preview-error').hidden = false;
-        $('preview-error').textContent = 'Chọn tối đa 6 build trong một ảnh.';
+        const err = $('preview-error');
+        if (err) {
+          err.hidden = false;
+          err.textContent = 'Chọn tối đa 6 build trong một ảnh.';
+        }
         return;
       }
       config.buildIds = config.buildIds.filter((x) => x !== id);
@@ -257,15 +270,14 @@ function initializePreview() {
     const t = e.target;
     if (t.dataset.key) {
       if (t.type === 'range') {
-        const out = $(`val-${t.dataset.key}`);
-        if (out) out.textContent = t.value + (t.dataset.key === 'bgBlur' ? 'px' : '%');
+        const out = $(`val-${t.dataset.key}`) || controls.querySelector(`#val-${t.dataset.key}`);
+        if (out) out.textContent = t.value + (t.dataset.key === 'bgDim' ? '%' : 'px');
         config[t.dataset.key] = Number(t.value);
-        if (['charPity', 'weaponPity', 'rollsLeft', 'monthCard'].includes(t.dataset.key)) {
-          updatePityDisplay('Tùy chỉnh thủ công');
-        }
-        config = normalizeConfig(config, data);
-        schedule();
-      } else if (t.type === 'text') {
+        clearTimeout(timer);
+        timer = setTimeout(schedule, 40);
+        return;
+      }
+      if (t.type === 'text') {
         config[t.dataset.key] = t.value;
         if (['charPity', 'weaponPity', 'rollsLeft', 'monthCard'].includes(t.dataset.key)) {
           updatePityDisplay('Tùy chỉnh thủ công');
@@ -306,10 +318,10 @@ function initializePreview() {
         schedule();
       }
     }
-    if (t.id === 'preview-fact-search') updateFacts();
-    if (t.id === 'preview-build-search') {
+    if (t.id === 'preview-fact-search' || t.id === `${prefix}preview-fact-search`) updateFacts();
+    if (t.id === 'preview-build-search' || t.id === `${prefix}preview-build-search`) {
       const q = t.value.trim().toLocaleLowerCase();
-      document
+      controls
         .querySelectorAll('[data-build-name]')
         .forEach((x) => (x.hidden = !x.dataset.buildName.includes(q)));
     }
@@ -317,7 +329,12 @@ function initializePreview() {
   controls.addEventListener('click', (e) => {
     const b = e.target.closest('button');
     if (!b) return;
-    if (b.id === 'preview-pity-reload' || b.closest('#preview-pity-reload')) {
+    if (
+      b.id === 'preview-pity-reload' ||
+      b.id === `${prefix}preview-pity-reload` ||
+      b.closest(`#preview-pity-reload`) ||
+      b.closest(`#${prefix}preview-pity-reload`)
+    ) {
       if (data?.role?.uid) {
         fetchPityFromUid(data.role.uid);
       }
@@ -354,118 +371,76 @@ function initializePreview() {
       schedule();
     }
     if (b.dataset.statPreset) {
-      const kind = b.dataset.statPreset,
-        element = { Pyro: 40, Electro: 41, Hydro: 42, Dendro: 43, Anemo: 44, Geo: 45, Cryo: 46 };
+      const kind = b.dataset.statPreset;
       config.statIds =
         kind === 'none'
           ? []
           : kind === 'all'
             ? [
                 ...new Set(
-                  data.characters.flatMap((c) => properties(c).map((p) => p.property_type)),
+                  data.characters.flatMap((c) => properties(c).map((p) => Number(p.property_type))),
                 ),
               ]
-            : kind === 'support'
-              ? [2000, 2002, 28, 23, 26, 81]
-              : kind === 'em'
-                ? [2000, 2001, 28, 23, 20, 22]
-                : [
-                    ...DEFAULT_STATS,
-                    ...config.buildIds
-                      .map((id) => element[data.characters.find((c) => c.id === id)?.element])
-                      .filter(Boolean),
-                  ];
-      config = normalizeConfig(config, data);
+            : DEFAULT_STATS;
       updateStats();
       schedule();
     }
   });
-  document.querySelectorAll('[data-preset]').forEach((b) =>
-    b.addEventListener('click', () => {
-      const preset = b.dataset.preset;
-      config = normalizeConfig(
-        {
-          ...config,
-          account: preset !== 'build',
-          characters: true,
-          weapons: true,
-          charRows: 0,
-          weaponRows: 0,
-          charLimit: 0,
-          weaponLimit: 0,
-          charCols: 7,
-          weaponCols: 14,
-          charGridMode: 'balanced',
-          weaponGridMode: 'balanced',
-          charAlign: 'bottom',
-          weaponAlign: 'bottom',
-          charSort: preset === 'vip' ? 'prestige' : 'rarity',
-          maps: preset === 'full' || preset === 'compact',
-          mapStyle: preset === 'compact' ? 'compact' : 'classic',
-          wishBanner: true,
-          builds: preset === 'build',
-          facts:
-            preset === 'full'
-              ? [
-                  'collection.five',
-                  'collection.c6five',
-                  'stats.achievement_number',
-                  'stats.active_day_number',
-                  'abyss_current.state',
-                  'theater.0.state',
-                ]
-              : preset === 'vip'
-                ? ['collection.five', 'collection.c6five']
-                : [],
-          c6: true,
-          premium: true,
-        },
-        data,
-      );
-      setup();
-      schedule();
-    }),
-  );
-  $('preview-reset').addEventListener('click', () => {
+  $('preview-reset')?.addEventListener('click', () => {
     config = normalizeConfig({}, data);
     setup();
     schedule();
   });
-  $('preview-settings-toggle').addEventListener('click', (e) => {
-    const hide = $('preview-workspace').classList.toggle('controls-hidden');
+  $('preview-settings-toggle')?.addEventListener('click', (e) => {
+    const ws = $('preview-workspace');
+    if (!ws) return;
+    const hide = ws.classList.toggle('controls-hidden');
     e.currentTarget.textContent = hide ? 'Mở tùy chỉnh' : 'Ẩn tùy chỉnh';
     e.currentTarget.setAttribute('aria-expanded', String(!hide));
   });
-  $('preview-zoom').addEventListener('click', (e) => {
-    const zoom = document.querySelector('.preview-frame').classList.toggle('zoomed');
+  $('preview-zoom')?.addEventListener('click', (e) => {
+    const ws = $('preview-workspace');
+    const frame = ws?.querySelector('.preview-frame') || document.querySelector('.preview-frame');
+    const zoom = frame?.classList.toggle('zoomed');
     e.currentTarget.textContent = zoom ? 'Thu nhỏ' : 'Phóng to';
   });
-  const observer = new IntersectionObserver(
-    (entries) => {
-      if (entries.some((e) => e.isIntersecting)) {
-        visible = true;
-        if (data) schedule();
-      }
-    },
-    { rootMargin: '200px' },
-  );
-  observer.observe($('account-preview'));
-  window.addEventListener('showcase:rendered', (e) => {
-    const next = e.detail,
-      key =
-        next.id + ':' + next.characters.filter((c) => c.hasDetail).length + ':' + next.updatedAt;
+
+  const previewSection = $('account-preview');
+  if (previewSection) {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          visible = true;
+          if (data) schedule();
+        }
+      },
+      { rootMargin: '200px' },
+    );
+    observer.observe(previewSection);
+  }
+
+  function handleData(next) {
+    if (!next) return;
+    if (game === 'hsr' && next.game !== 'hsr') return;
+    if (game === 'genshin' && next.game === 'hsr') return;
+    const key =
+      next.id +
+      ':' +
+      (next.characters ? next.characters.filter((c) => c.hasDetail).length : 0) +
+      ':' +
+      (next.updatedAt || '');
     if (key === lastDataKey) return;
     lastDataKey = key;
     data = next;
-    const nextRole = `genshin.preview.v4.${next.role.uid}.${next.role.server}`;
+    const nextRole = `${game}.preview.v4.${next.role?.uid || 'guest'}.${next.role?.server || 'default'}`;
     if (roleKey !== nextRole) {
       roleKey = nextRole;
       let saved;
       try {
         saved = JSON.parse(
           localStorage.getItem(roleKey) ||
-            localStorage.getItem(`genshin.preview.v3.${next.role.uid}.${next.role.server}`) ||
-            localStorage.getItem(`genshin.preview.v2.${next.role.uid}.${next.role.server}`) ||
+            localStorage.getItem(`${game}.preview.v3.${next.role?.uid}.${next.role?.server}`) ||
+            localStorage.getItem(`${game}.preview.v2.${next.role?.uid}.${next.role?.server}`) ||
             'null',
         );
         if (saved && (saved.charCols === 8 || !saved.charCols)) saved.charCols = 7;
@@ -474,17 +449,31 @@ function initializePreview() {
       config = normalizeConfig(saved ?? {}, next);
     } else config = normalizeConfig(config, next);
     setup();
-    if (next?.role?.uid) fetchPityFromUid(next.role.uid);
+    if (next?.role?.uid && game === 'genshin') fetchPityFromUid(next.role.uid);
     if (visible) schedule();
-  });
-  window.dispatchEvent(new Event('showcase:request-data'));
+  }
+
+  if (game === 'hsr') {
+    window.addEventListener('hsr:rendered', (e) => handleData(e.detail));
+    fetch('/api/showcase/saved/hsr')
+      .then((r) => r.json())
+      .then((j) => {
+        if (j?.view?.game === 'hsr') handleData(j.view);
+      })
+      .catch(() => {});
+  } else {
+    window.addEventListener('showcase:rendered', (e) => handleData(e.detail));
+    window.dispatchEvent(new Event('showcase:request-data'));
+  }
+
   async function draw(run) {
     if (!data || !visible || run !== generation) return;
     const model = data,
       c = normalizeConfig(config, model),
       plan = planPreview(model, c);
+    const loading = $('preview-loading');
     if (plan.error) {
-      $('preview-loading').hidden = true;
+      if (loading) loading.hidden = true;
       return;
     }
     const result = await renderAccountPreview({
@@ -494,9 +483,9 @@ function initializePreview() {
       plan,
       isCurrent: () => run === generation,
       onProgress: (message) => {
-        if (run === generation) {
-          $('preview-loading').hidden = false;
-          $('preview-loading').textContent = message;
+        if (run === generation && loading) {
+          loading.hidden = false;
+          loading.textContent = message;
         }
       },
     });
@@ -504,20 +493,30 @@ function initializePreview() {
     hits = result.hits;
     ready = true;
     setActionsState(true);
-    $('preview-loading').title = result.missing.join('\n');
-    $('preview-loading').textContent = result.missing.length
-      ? result.missing.length + ' ảnh chưa tải được. Đổi tùy chọn để thử lại.'
-      : '';
-    $('preview-loading').hidden = !result.missing.length;
+    if (loading) {
+      loading.title = result.missing.join('\n');
+      loading.textContent = result.missing.length
+        ? result.missing.length + ' ảnh chưa tải được. Đổi tùy chọn để thử lại.'
+        : '';
+      loading.hidden = !result.missing.length;
+    }
   }
+
   canvas.addEventListener('click', (event) => {
     if (!ready) return;
     const r = canvas.getBoundingClientRect(),
       x = ((event.clientX - r.left) * 1600) / r.width,
       y = ((event.clientY - r.top) * (canvas.height / (canvas.width / 1600))) / r.height;
     const tile = hits.find((t) => x >= t.x && x <= t.x + t.w && y >= t.y && y <= t.y + t.h);
-    if (tile)
-      window.dispatchEvent(new CustomEvent('showcase:open-character', { detail: { id: tile.id } }));
+    if (tile) {
+      if (game === 'hsr') {
+        window.dispatchEvent(new CustomEvent('hsr:open-character', { detail: { id: tile.id } }));
+      } else {
+        window.dispatchEvent(
+          new CustomEvent('showcase:open-character', { detail: { id: tile.id } }),
+        );
+      }
+    }
   });
 
   let toastTimer = null;
@@ -536,14 +535,17 @@ function initializePreview() {
     if (!ready) return;
     canvas.toBlob((blob) => {
       if (!blob) {
-        $('preview-error').hidden = false;
-        $('preview-error').textContent = 'Chưa tạo được PNG. Giảm độ phân giải rồi thử lại.';
+        const err = $('preview-error');
+        if (err) {
+          err.hidden = false;
+          err.textContent = 'Chưa tạo được PNG. Giảm độ phân giải rồi thử lại.';
+        }
         return;
       }
       const url = URL.createObjectURL(blob),
         a = document.createElement('a');
       a.href = url;
-      a.download = `genshin-account-${config.uid && data?.role?.uid ? data.role.uid : 'showcase'}.png`;
+      a.download = `${game}-account-${config.uid && data?.role?.uid ? data.role.uid : 'showcase'}.png`;
       a.click();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
       showToast('Đang tải ảnh PNG về máy thành công!');
@@ -554,8 +556,11 @@ function initializePreview() {
     if (!ready) return;
     canvas.toBlob(async (blob) => {
       if (!blob) {
-        $('preview-error').hidden = false;
-        $('preview-error').textContent = 'Chưa tạo được PNG để sao chép.';
+        const err = $('preview-error');
+        if (err) {
+          err.hidden = false;
+          err.textContent = 'Chưa tạo được PNG để sao chép.';
+        }
         return;
       }
       try {
@@ -580,9 +585,12 @@ function initializePreview() {
         );
       } catch (e) {
         console.warn('Lỗi copy clipboard:', e);
-        $('preview-error').hidden = false;
-        $('preview-error').textContent =
-          'Trình duyệt chưa cho phép ghi ảnh vào Clipboard trực tiếp. Hãy dùng nút Tải ảnh PNG.';
+        const err = $('preview-error');
+        if (err) {
+          err.hidden = false;
+          err.textContent =
+            'Trình duyệt chưa cho phép ghi ảnh vào Clipboard trực tiếp. Hãy dùng nút Tải ảnh PNG.';
+        }
       }
     }, 'image/png');
   }
@@ -595,7 +603,7 @@ function initializePreview() {
   $('preview-copy-inline')?.addEventListener('click', (e) => triggerCopy(e.currentTarget));
   $('floating-copy')?.addEventListener('click', (e) => triggerCopy(e.currentTarget));
 
-  const ctxMenu = $('canvas-context-menu');
+  const ctxMenu = document.getElementById('canvas-context-menu');
   if (ctxMenu) {
     canvas.addEventListener('contextmenu', (e) => {
       if (!ready) return;
@@ -610,15 +618,15 @@ function initializePreview() {
     document.addEventListener('scroll', () => {
       ctxMenu.hidden = true;
     });
-    $('ctx-copy')?.addEventListener('click', () => {
+    document.getElementById('ctx-copy')?.addEventListener('click', () => {
       ctxMenu.hidden = true;
       triggerCopy($('preview-copy'));
     });
-    $('ctx-download')?.addEventListener('click', () => {
+    document.getElementById('ctx-download')?.addEventListener('click', () => {
       ctxMenu.hidden = true;
       triggerDownload();
     });
-    $('ctx-open')?.addEventListener('click', () => {
+    document.getElementById('ctx-open')?.addEventListener('click', () => {
       ctxMenu.hidden = true;
       canvas.toBlob((blob) => {
         if (!blob) return;
@@ -626,16 +634,16 @@ function initializePreview() {
         window.open(url, '_blank');
       }, 'image/png');
     });
-    $('ctx-zoom')?.addEventListener('click', () => {
+    document.getElementById('ctx-zoom')?.addEventListener('click', () => {
       ctxMenu.hidden = true;
       $('preview-zoom')?.click();
     });
   }
 }
+
 try {
-  initializePreview();
+  createPreviewManager({ game: 'genshin', prefix: '' });
+  createPreviewManager({ game: 'hsr', prefix: 'hsr-' });
 } catch (e) {
-  const node = document.getElementById('preview-loading');
-  node.hidden = false;
-  node.textContent = 'Không mở được tùy chỉnh ảnh: ' + e.message;
+  console.error('Lỗi khởi tạo preview manager:', e);
 }

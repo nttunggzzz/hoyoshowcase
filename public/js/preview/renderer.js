@@ -22,6 +22,7 @@ export async function renderAccountPreview({
   onProgress,
 }) {
   const ctx = canvas.getContext('2d');
+  const isHsr = model?.game === 'hsr';
   const theme = THEMES[c.theme] || THEMES.abyss;
   const { round, chiseled, panel, cornerBrackets, vignette, text, cover, contain } =
     createCanvasPainter(ctx);
@@ -128,7 +129,16 @@ export async function renderAccountPreview({
       w -= 78;
     }
     if (c.name) {
-      text(model.profile.nickname || 'Nhà lữ hành', x, top + 25, 26, '#fff', 600, 'left', w - 100);
+      text(
+        model.profile.nickname || (isHsr ? 'Nhà Khai Phá' : 'Nhà lữ hành'),
+        x,
+        top + 25,
+        26,
+        '#fff',
+        600,
+        'left',
+        w - 100,
+      );
       top += 32;
     }
     if (c.signature) {
@@ -146,7 +156,15 @@ export async function renderAccountPreview({
       top += 25;
     }
     if (c.ar)
-      text('AR ' + (model.profile.level ?? '-'), x + w - 8, y + 26, 24, theme.accent, 600, 'right');
+      text(
+        (isHsr ? 'TL ' : 'AR ') + (model.profile.level ?? '-'),
+        x + w - 8,
+        y + 26,
+        24,
+        theme.accent,
+        600,
+        'right',
+      );
     if (c.code) {
       const codeStr = String(c.code).trim();
       if (codeStr) {
@@ -179,7 +197,15 @@ export async function renderAccountPreview({
     if (c.cornerAccents) {
       cornerBrackets(x + 3, y + 3, w - 6, h - 6, theme.accent, 8);
     }
-    text('✦ CẦU NGUYỆN & BẢO HIỂM', x + 16, y + 23, 13, theme.accent, 700, 'left');
+    text(
+      isHsr ? '✦ BƯỚC NHẢY & BẢO HIỂM' : '✦ CẦU NGUYỆN & BẢO HIỂM',
+      x + 16,
+      y + 23,
+      13,
+      theme.accent,
+      700,
+      'left',
+    );
     if (c.monthCard > 0) {
       text(`Thẻ tháng: ${c.monthCard} ngày`, x + w - 16, y + 23, 11, '#9abf6b', 600, 'right');
     }
@@ -187,7 +213,7 @@ export async function renderAccountPreview({
     ctx.fillRect(x + 14, y + 33, w - 28, 1);
     const colW = (w - 28) / 3;
     const c1x = x + 14;
-    text('PITY NHÂN VẬT', c1x, y + 49, 10, theme.textMuted, 600);
+    text(isHsr ? 'BƯỚC NHẢY NV' : 'PITY NHÂN VẬT', c1x, y + 49, 10, theme.textMuted, 600);
     text(`${c.charPity} / 90`, c1x, y + 74, 20, theme.accent, 800);
     if (c.charGuaranteed) {
       ctx.fillStyle = '#173d2f';
@@ -198,13 +224,13 @@ export async function renderAccountPreview({
       text('Tỉ lệ 50 / 50', c1x, y + 94, 10, '#94a8ba', 500);
     }
     const c2x = x + 14 + colW;
-    text('PITY VŨ KHÍ', c2x, y + 49, 10, theme.textMuted, 600);
+    text(isHsr ? 'BƯỚC NHẢY NÓN' : 'PITY VŨ KHÍ', c2x, y + 49, 10, theme.textMuted, 600);
     text(`${c.weaponPity} / 80`, c2x, y + 74, 20, '#9cdcfe', 800);
-    text('Định chuẩn', c2x, y + 94, 10, '#7ea9c4', 500);
+    text(isHsr ? 'Định hình' : 'Định chuẩn', c2x, y + 94, 10, '#7ea9c4', 500);
     const c3x = x + 14 + colW * 2;
-    text('MỐI DUYÊN', c3x, y + 49, 10, theme.textMuted, 600);
+    text(isHsr ? 'VÉ TINH CẦU' : 'MỐI DUYÊN', c3x, y + 49, 10, theme.textMuted, 600);
     text(`${c.rollsLeft}`, c3x, y + 74, 20, '#ff8dbb', 800);
-    text('Rolls dự trữ', c3x, y + 94, 10, theme.textMuted, 500);
+    text(isHsr ? 'Vé đặc biệt' : 'Rolls dự trữ', c3x, y + 94, 10, theme.textMuted, 500);
   }
   function paintBoard(offset) {
     ctx.save();
@@ -332,7 +358,13 @@ export async function renderAccountPreview({
     }
     const count = isWeapon ? c.weaponCount : c.charCount,
       total = isWeapon ? p.allWeapons : p.allCharacters,
-      heading = isWeapon ? 'VŨ KHÍ TRANG BỊ' : 'NHÂN VẬT';
+      heading = isWeapon
+        ? isHsr
+          ? 'NÓN ÁNH SÁNG'
+          : 'VŨ KHÍ TRANG BỊ'
+        : isHsr
+          ? 'ĐỘI NGŨ KHAI PHÁ'
+          : 'NHÂN VẬT';
     text(
       heading +
         (count
@@ -426,10 +458,10 @@ export async function renderAccountPreview({
       );
     const corner = weapon
       ? c.refinements
-        ? 'R' + (item.affix_level ?? 1)
+        ? (isHsr ? 'S' : 'R') + (item.affix_level ?? 1)
         : ''
       : c.constellations
-        ? 'C' + (owner.actived_constellation_num ?? 0)
+        ? (isHsr ? 'E' : 'C') + (owner.actived_constellation_num ?? 0)
         : '';
     if (corner) {
       if (isVip) {
@@ -437,7 +469,7 @@ export async function renderAccountPreview({
         ctx.fillStyle = '#f0c55e';
         ctx.fillRect(x + 2, y + 2, w - 4, bh);
         text(
-          'C6',
+          isHsr ? 'E6' : 'C6',
           x + w / 2,
           y + bh - 4,
           c.c6Size === 'large' ? Math.min(31, w * 0.39) : 17,
@@ -454,13 +486,16 @@ export async function renderAccountPreview({
     }
     if (!weapon && c.elements) {
       const elemSize = Math.max(12, Math.min(19, Math.round(w * 0.28)));
-      contain(
-        art(GAME_ASSETS.elements[owner.element]),
-        x + w - elemSize - 4,
-        y + (isVip ? Math.max(26, w * 0.42) : 4),
-        elemSize,
-        elemSize,
-      );
+      const elemAsset = GAME_ASSETS.elements[owner.element];
+      if (elemAsset) {
+        contain(
+          art(elemAsset),
+          x + w - elemSize - 4,
+          y + (isVip ? Math.max(26, w * 0.42) : 4),
+          elemSize,
+          elemSize,
+        );
+      }
     }
     if (weapon && c.weaponOwner) {
       const ownerSize = Math.max(14, Math.min(24, Math.round(w * 0.32)));
@@ -729,18 +764,20 @@ export async function renderAccountPreview({
     ctx.fillStyle = shade;
     ctx.fillRect(25, 19, 535, heroHeight);
     ctx.restore();
-    contain(art(GAME_ASSETS.elements[character.element]), 48, 42, 33, 33);
+    const charElemAsset = GAME_ASSETS.elements[character.element];
+    if (charElemAsset) contain(art(charElemAsset), 48, 42, 33, 33);
     text('★'.repeat(stars(character)), 95, 66, 18, theme.accent, 600);
     text(character.name, 48, heroHeight - 95, 48, '#fff', 600, 'left', 470);
     const meta = [];
     if (c.levels) meta.push('Lv. ' + character.level);
-    if (c.buildConstellations) meta.push('C' + (character.actived_constellation_num ?? 0));
-    if (c.buildFetter) meta.push('Thiện cảm ' + character.fetter);
+    if (c.buildConstellations)
+      meta.push((isHsr ? 'E' : 'C') + (character.actived_constellation_num ?? 0));
+    if (c.buildFetter && character.fetter != null) meta.push('Thiện cảm ' + character.fetter);
     text(meta.join(' / '), 48, heroHeight - 61, 20, '#d9e3ef');
     if (c.uid) text('UID ' + model.role.uid, 48, heroHeight - 30, 14, '#afc2d5');
     if (exclusive) {
       panel(426, 40, 106, 65, { fill: '#edc05e', stroke: '#fff0a5', line: 2, style: c.frameStyle });
-      text('C6', 479, 88, 40, '#211a0e', 800, 'center');
+      text(isHsr ? 'E6' : 'C6', 479, 88, 40, '#211a0e', 800, 'center');
     }
     const left = 590,
       right = baseW - 50,
@@ -759,7 +796,7 @@ export async function renderAccountPreview({
       text(
         [
           c.levels ? 'Lv. ' + weapon.level : null,
-          c.refinements ? 'R' + (weapon.affix_level ?? 1) : null,
+          c.refinements ? (isHsr ? 'S' : 'R') + (weapon.affix_level ?? 1) : null,
         ]
           .filter(Boolean)
           .join(' / '),

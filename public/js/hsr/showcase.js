@@ -25,7 +25,7 @@ const asset = (url) => {
 const img = (url, alt = '', className = '') => {
   const src = asset(url);
   if (!src) return '';
-  return `<img src="${escape(src)}" alt="${escape(alt)}" class="${className}" loading="lazy" decoding="async" onerror="this.onerror=null;this.remove();">`;
+  return `<img src="${escape(src)}" alt="${escape(alt)}" class="${className}" loading="lazy" decoding="async">`;
 };
 
 const ELEMENTS = {
@@ -129,6 +129,19 @@ function setupEventListeners() {
 
   const grid = el('hsr-roster-grid');
   if (grid) {
+    grid.addEventListener('click', (e) => {
+      const card = e.target.closest('[data-character]');
+      if (card) openHsrCharacter(Number(card.dataset.character));
+    });
+    grid.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        const card = e.target.closest('[data-character]');
+        if (card) {
+          e.preventDefault();
+          openHsrCharacter(Number(card.dataset.character));
+        }
+      }
+    });
     grid.addEventListener(
       'error',
       (e) => {
@@ -139,6 +152,10 @@ function setupEventListeners() {
       true,
     );
   }
+
+  window.addEventListener('hsr:open-character', (e) => {
+    if (e.detail?.id != null) openHsrCharacter(Number(e.detail.id));
+  });
 
   const exportBtn = el('hsr-export');
   if (exportBtn) {
@@ -211,6 +228,147 @@ export function renderHsr(model) {
   if (el('hsr-stat-moc')) el('hsr-stat-moc').textContent = stats.abyssProcess || 'Chưa tham gia';
 
   renderRoster();
+  window.dispatchEvent(new CustomEvent('hsr:rendered', { detail: model }));
+  window.dispatchEvent(new CustomEvent('showcase:rendered', { detail: model }));
+}
+
+export function openHsrCharacter(id) {
+  const c = hsrModel?.characters?.find((x) => x.id === id);
+  if (!c) return;
+
+  const w = c.equip || c.weapon;
+  const props = c.properties || [];
+  const propertyLabels = {
+    2000: 'HP tối đa',
+    2001: 'Tấn công',
+    2002: 'Phòng ngự',
+    2003: 'Tốc độ',
+    20: 'Tỷ lệ bạo kích',
+    22: 'ST bạo kích',
+    24: 'Tấn công kích phá',
+    25: 'Tăng ST thuộc tính',
+  };
+
+  const relicPosName = (pos) => {
+    switch (pos) {
+      case 1:
+        return 'Đầu (Head)';
+      case 2:
+        return 'Tay (Hands)';
+      case 3:
+        return 'Thân (Body)';
+      case 4:
+        return 'Chân (Feet)';
+      case 5:
+        return 'Quả Cầu Vị Diện';
+      case 6:
+        return 'Dây Liên Kết';
+      default:
+        return 'Di vật';
+    }
+  };
+
+  const dialogContent = el('character-content');
+  if (!dialogContent) return;
+
+  dialogContent.innerHTML = `
+    <div class="detail-top">
+      <div class="detail-art">
+        ${img(c.image || c.icon, c.name)}
+      </div>
+      <div class="detail-info">
+        <p class="eyebrow">${escape(c.path || 'Vận Mệnh')} · ${escape(c.element || 'Thuộc Tính')} / ${c.rarity} SAO</p>
+        <h2 id="character-dialog-title">${escape(c.name)}</h2>
+        <p class="detail-subtitle">Cấp ${c.level} / Tinh Hồn E${c.rank ?? 0} · Honkai: Star Rail</p>
+        <div class="stat-grid">
+          ${props
+            .map(
+              (p) => `
+            <div class="stat-item">
+              <span>${escape(propertyLabels[p.property_type] || 'Chỉ số ' + p.property_type)}</span>
+              <strong>${escape(p.final)}</strong>
+            </div>
+          `,
+            )
+            .join('')}
+        </div>
+        <div class="constellations">
+          ${(c.constellations || [])
+            .map(
+              (x) => `
+            <span class="${x.is_actived ? 'unlocked' : ''}" title="${escape(x.name)}: ${escape(x.effect)}">
+              <span class="hsr-eidolon-chip ${x.is_actived ? 'active' : ''}">E${x.pos}</span>
+            </span>
+          `,
+            )
+            .join('')}
+        </div>
+      </div>
+    </div>
+    <div class="detail-lower">
+      ${
+        w
+          ? `
+        <div class="detail-weapon">
+          ${img(w.icon, w.name)}
+          <div>
+            <p class="eyebrow">NÓN ÁNH SÁNG TRANG BỊ</p>
+            <h4>${escape(w.name)}</h4>
+            <p>Cấp ${w.level} / Tích Lũy S${w.rank || 1}</p>
+          </div>
+          <div class="weapon-stats">
+            <div><strong>${w.rarity}★</strong><span>Độ hiếm</span></div>
+            <div><strong>S${w.rank || 1}</strong><span>Tích lũy</span></div>
+            <div><strong>Lv. ${w.level}</strong><span>Cấp độ</span></div>
+          </div>
+        </div>
+      `
+          : '<p class="muted">Chưa trang bị Nón Ánh Sáng.</p>'
+      }
+      <h3>Di vật & Phụ kiện Vị diện (${c.relics?.length ?? 0}/6)</h3>
+      <div class="relic-grid">
+        ${
+          (c.relics || [])
+            .map(
+              (r) => `
+          <article class="relic ${r.pos > 4 ? 'ornament' : 'relic'}">
+            ${img(r.icon, r.name)}
+            <h4>${escape(r.name)} +${r.level}</h4>
+            <div class="relic-main">${r.pos > 4 ? 'Phụ kiện vị diện' : 'Di vật'} (${r.rarity}★)</div>
+            <p><span>Vị trí</span><span>${relicPosName(r.pos)}</span></p>
+          </article>
+        `,
+            )
+            .join('') || '<p class="muted">Chưa có di vật nào được trang bị.</p>'
+        }
+      </div>
+      <div class="skill-list">
+        ${(c.skills || [])
+          .map(
+            (s) => `
+          <div class="skill">
+            <div class="skill-icon-wrap">${img(s.icon, s.name)}</div>
+            <div><p>${escape(s.name)}</p><strong>Cấp ${s.level}</strong></div>
+          </div>
+        `,
+          )
+          .join('')}
+      </div>
+    </div>
+  `;
+
+  dialogContent.addEventListener(
+    'error',
+    (e) => {
+      if (e.target?.tagName === 'IMG') {
+        e.target.style.display = 'none';
+      }
+    },
+    true,
+  );
+
+  const dialog = el('character-dialog');
+  if (dialog && !dialog.open) dialog.showModal();
 }
 
 function renderRoster() {
@@ -285,7 +443,7 @@ function renderRoster() {
           : '';
 
       return `
-        <div class="hsr-character-card ${isFiveStar ? 'rarity-5' : 'rarity-4'}">
+        <div class="hsr-character-card ${isFiveStar ? 'rarity-5' : 'rarity-4'}" data-character="${c.id}" role="button" tabindex="0" title="Nhấp để xem chi tiết ${escape(c.name)}">
           <div class="hsr-card-banner">
             <div class="hsr-avatar-frame">
               <span class="hsr-avatar-fallback" aria-hidden="true">${escape(c.name.charAt(0))}</span>
