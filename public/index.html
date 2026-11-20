@@ -14,12 +14,41 @@
   </head>
   <body>
     <header class="topbar">
-      <a class="wordmark" href="#overview"
-        ><span class="brand-mark" aria-hidden="true">✦</span> TEYVAT <span>ARCHIVE</span></a
-      >
-      <nav aria-label="Điều hướng chính">
+      <div class="topbar-brand-wrap">
+        <a class="wordmark" href="#overview"
+          ><span class="brand-mark" aria-hidden="true">✦</span> <span id="brand-title">TEYVAT</span>
+          <span id="brand-sub">ARCHIVE</span></a
+        >
+        <div class="game-segmented-switch" role="tablist" aria-label="Chọn tựa game">
+          <button
+            id="game-btn-genshin"
+            class="game-switch-btn active"
+            role="tab"
+            aria-selected="true"
+            data-game="genshin"
+          >
+            <span class="game-switch-icon" aria-hidden="true">✦</span>
+            <span class="game-switch-name">Genshin Impact</span>
+          </button>
+          <button
+            id="game-btn-hsr"
+            class="game-switch-btn"
+            role="tab"
+            aria-selected="false"
+            data-game="hsr"
+          >
+            <span class="game-switch-icon" aria-hidden="true">✦</span>
+            <span class="game-switch-name">Honkai: Star Rail</span>
+          </button>
+        </div>
+      </div>
+      <nav id="topbar-nav-genshin" aria-label="Điều hướng chính Genshin">
         <a href="#overview" class="active">Tổng quan</a><a href="#collection">Bộ sưu tập</a
         ><a href="#account-preview">Preview account</a><a href="#exploration">Khám phá</a>
+      </nav>
+      <nav id="topbar-nav-hsr" aria-label="Điều hướng chính Star Rail" hidden>
+        <a href="#hsr-overview" class="active">Tổng quan</a
+        ><a href="#hsr-roster">Đội ngũ Khai Phá</a>
       </nav>
       <div class="header-actions">
         <button id="theme-toggle" class="icon-button" aria-label="Đổi giao diện sáng tối">
@@ -439,6 +468,87 @@
         <button id="progress-open" class="text-button">Trạng thái đồng bộ ↗</button>
       </section>
       <div id="showcase-notice" role="status" hidden></div>
+    </main>
+    <main id="hsr-showcase-main" hidden>
+      <section id="hsr-overview" class="profile-head">
+        <div>
+          <p class="eyebrow">HỒ SƠ NHÀ KHAI PHÁ · HONKAI: STAR RAIL</p>
+          <h1 id="hsr-profile-name">Nhà Khai Phá</h1>
+          <p id="hsr-profile-meta" class="muted">
+            Kết nối HoYoLAB để mở bộ sưu tập Star Rail của bạn.
+          </p>
+        </div>
+        <div class="sync-info">
+          <span id="hsr-freshness">Đang mở bản Star Rail đã lưu</span>
+          <button id="hsr-export" class="text-button">Tải dữ liệu Star Rail ↓</button>
+        </div>
+      </section>
+
+      <section class="hsr-stats-strip" aria-label="Thống kê Khai Phá">
+        <div class="hsr-stat-chip">
+          <span class="hsr-stat-label">Cấp Khai Phá</span>
+          <strong id="hsr-stat-level" class="hsr-stat-value">Lv. --</strong>
+        </div>
+        <div class="hsr-stat-chip">
+          <span class="hsr-stat-label">Ngày Hoạt Động</span>
+          <strong id="hsr-stat-days" class="hsr-stat-value">--</strong>
+        </div>
+        <div class="hsr-stat-chip">
+          <span class="hsr-stat-label">Nhân Vật Sở Hữu</span>
+          <strong id="hsr-stat-avatars" class="hsr-stat-value">--</strong>
+        </div>
+        <div class="hsr-stat-chip">
+          <span class="hsr-stat-label">Thành Tựu</span>
+          <strong id="hsr-stat-achievements" class="hsr-stat-value">--</strong>
+        </div>
+        <div class="hsr-stat-chip">
+          <span class="hsr-stat-label">Sảnh Đường / Vũ Trụ</span>
+          <strong id="hsr-stat-moc" class="hsr-stat-value">--</strong>
+        </div>
+      </section>
+
+      <section id="hsr-roster" class="collection-section">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">BỘ SƯU TẬP STAR RAIL</p>
+            <h2>Đoàn Tàu Astral <span id="hsr-roster-total" class="count-label">0</span></h2>
+          </div>
+          <div class="hsr-search-wrap">
+            <input
+              id="hsr-search"
+              type="search"
+              placeholder="Tìm tên nhân vật hoặc Nón Ánh Sáng…"
+              aria-label="Tìm kiếm nhân vật Star Rail"
+            />
+          </div>
+        </div>
+
+        <div class="hsr-filter-toolbar">
+          <div class="hsr-filter-group">
+            <span class="hsr-filter-label">Thuộc tính:</span>
+            <div
+              id="hsr-element-filters"
+              class="hsr-filter-pills"
+              role="toolbar"
+              aria-label="Lọc theo Thuộc Tính"
+            ></div>
+          </div>
+          <div class="hsr-filter-group">
+            <span class="hsr-filter-label">Vận mệnh:</span>
+            <div
+              id="hsr-path-filters"
+              class="hsr-filter-pills"
+              role="toolbar"
+              aria-label="Lọc theo Vận Mệnh"
+            ></div>
+          </div>
+        </div>
+
+        <div id="hsr-roster-grid" class="hsr-roster-grid"></div>
+        <div id="hsr-roster-empty" class="hsr-roster-empty" hidden>
+          <p>Không tìm thấy nhân vật nào phù hợp với bộ lọc hiện tại.</p>
+        </div>
+      </section>
     </main>
     <footer>
       <a class="wordmark" href="#overview">TEYVAT <span>ARCHIVE</span></a>

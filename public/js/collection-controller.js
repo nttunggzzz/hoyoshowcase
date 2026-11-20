@@ -97,19 +97,24 @@ function setSession(s) {
     }[s.source] ||
     s.source ||
     'chưa đăng nhập';
+  const genshinCount = s.roles.filter((r) => r.game !== 'hsr').length;
+  const hsrCount = s.roles.filter((r) => r.game === 'hsr').length;
   $('collector-account-state').textContent =
-    `Nguồn: ${source} · Cookie HoYoLAB: ${s.hasLtoken ? 'có' : 'chưa có'} · Tài khoản Genshin: ${s.roles.length}`;
+    `Nguồn: ${source} · Cookie HoYoLAB: ${s.hasLtoken ? 'có' : 'chưa có'} · Genshin: ${genshinCount} · Star Rail: ${hsrCount}`;
   const prior = $('collector-roles').value;
   $('collector-roles').replaceChildren(
     new Option(s.roles.length ? 'Chọn UID/server' : 'Chưa có tài khoản', ''),
   );
-  for (const r of s.roles)
+  for (const r of s.roles) {
+    const isHsr = r.game === 'hsr' || r.gameBiz === 'hkrpg_global';
+    const tag = isHsr ? '✦ [Star Rail]' : '✦ [Genshin]';
     $('collector-roles').add(
       new Option(
-        `${r.uid} · ${r.server} · ${r.nickname || 'Genshin'} · cấp ${r.level}`,
+        `${tag} ${r.uid} · ${r.server} · ${r.nickname || (isHsr ? 'Khai Phá' : 'Genshin')} · cấp ${r.level}`,
         `${r.uid}|${r.server}`,
       ),
     );
+  }
   if ([...$('collector-roles').options].some((x) => x.value === prior))
     $('collector-roles').value = prior;
   if (s.selected) $('collector-roles').value = `${s.selected.uid}|${s.selected.server}`;
@@ -206,7 +211,9 @@ async function begin() {
   snapshot = null;
   downloadedId = null;
   $('collector-preview').hidden = true;
-  const j = await api('collector/start');
+  const roleObj = sessionState?.roles?.find((r) => r.uid === uid && r.server === server);
+  const isHsr = roleObj?.game === 'hsr' || roleObj?.gameBiz === 'hkrpg_global';
+  const j = await api('collector/start', { game: isHsr ? 'hsr' : 'genshin' });
   renderCollection(j.collection);
   polling = true;
   controls();
@@ -248,6 +255,19 @@ async function poll(epoch = jobEpoch) {
       saveSnapshot();
       downloadedId = snapshot.id;
     }
+    try {
+      const isHsr = snapshot.schema === 'hsr-battle-chronicle-v1';
+      const viewResult = await api('collector/view', {
+        game: isHsr ? 'hsr' : 'genshin',
+      });
+      if (viewResult?.view) {
+        if (isHsr) {
+          window.dispatchEvent(new CustomEvent('hsr:update-data', { detail: viewResult.view }));
+        } else {
+          window.dispatchEvent(new CustomEvent('showcase:rendered', { detail: viewResult.view }));
+        }
+      }
+    } catch {}
   }
 }
 function renderCollectionOriginal(c) {
@@ -304,6 +324,33 @@ function renderCharacters() {
   $('collector-preview').hidden = false;
   const q = $('collector-search').value.trim().toLocaleLowerCase();
   $('collector-characters').replaceChildren();
+  const isHsr = snapshot.schema === 'hsr-battle-chronicle-v1';
+  if (isHsr) {
+    const list =
+      snapshot.sections?.characters?.data?.avatar_list ||
+      snapshot.sections?.avatar_info?.data?.avatar_list ||
+      [];
+    for (const c of list) {
+      const name = c.name || String(c.id);
+      const equip = c.equip || {};
+      if (q && !`${name} ${equip.name || ''}`.toLocaleLowerCase().includes(q)) continue;
+      const tr = document.createElement('tr');
+      for (const value of [
+        name,
+        c.level ?? '—',
+        `E${c.rank ?? 0}`,
+        equip.name || '—',
+        equip.level ? `Lv. ${equip.level} / S${equip.rank || 1}` : '—',
+      ]) {
+        const td = document.createElement('td');
+        td.textContent = String(value);
+        tr.append(td);
+      }
+      $('collector-characters').append(tr);
+    }
+    return;
+  }
+  if (!snapshot.views?.characters) return;
   for (const c of snapshot.views.characters) {
     const base = c.detail?.base || c.basic,
       weapon = c.detail?.weapon || c.basic.weapon || {};
@@ -325,13 +372,15 @@ function renderCharacters() {
 }
 function saveSnapshot() {
   if (!snapshot) return;
+  const isHsr = snapshot.schema === 'hsr-battle-chronicle-v1';
+  const prefix = isHsr ? 'hsr-battle-chronicle' : 'battle-chronicle';
   const date = localDate(new Date(snapshot.startedAt)),
     url = URL.createObjectURL(
       new Blob([JSON.stringify(snapshot, null, 2)], { type: 'application/json' }),
     ),
     a = document.createElement('a');
   a.href = url;
-  a.download = `battle-chronicle-${snapshot.role.uid}-${date}.json`;
+  a.download = `${prefix}-${snapshot.role?.uid || 'latest'}-${date}.json`;
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }

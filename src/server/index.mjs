@@ -9,8 +9,11 @@ if (!Number.isInteger(port) || port < 1024 || port > 65535)
 const store = createSnapshotStore(
   process.env.HOYO_DATA_DIR || fileURLToPath(new URL('../../data/', import.meta.url)),
 );
+const savedGenshin = await store.load('genshin');
+const savedHsr = await store.load('hsr');
 const server = createApp({
-  savedSnapshot: await store.load(),
+  savedSnapshot: savedGenshin || (await store.load()),
+  savedHsrSnapshot: savedHsr,
   onSnapshot: (snapshot) => store.save(snapshot),
 });
 server.listen(port, '127.0.0.1', () => {

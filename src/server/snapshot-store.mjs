@@ -27,12 +27,18 @@ export function createSnapshotStore(directory, defaultGame = null) {
     async load(game = defaultGame) {
       const target = getFilename(game);
       try {
-        return validate(JSON.parse(await readFile(target, 'utf8')));
+        const data = validate(JSON.parse(await readFile(target, 'utf8')));
+        if (game === 'hsr' && data.schema !== 'hsr-battle-chronicle-v1') return null;
+        if (game === 'genshin' && data.schema !== 'genshin-battle-chronicle-v1') return null;
+        return data;
       } catch (error) {
         if (error.code === 'ENOENT') {
-          if (target !== filename) {
+          if (target !== filename && game !== 'hsr') {
             try {
-              return validate(JSON.parse(await readFile(filename, 'utf8')));
+              const fallback = validate(JSON.parse(await readFile(filename, 'utf8')));
+              if (game === 'genshin' && fallback.schema !== 'genshin-battle-chronicle-v1')
+                return null;
+              return fallback;
             } catch (fallbackError) {
               if (fallbackError.code === 'ENOENT') return null;
               throw new Error(

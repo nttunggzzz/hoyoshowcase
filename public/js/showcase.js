@@ -1,4 +1,5 @@
 import { GAME_ASSETS } from './game-assets.js';
+import { initHsrShowcase } from './hsr/showcase.js';
 const el = (id) => document.getElementById(id);
 const escape = (v) =>
   String(v ?? '').replace(
@@ -92,11 +93,68 @@ for (const id of ['character-dialog', 'collector-console'])
   });
 document.querySelectorAll('.topbar nav a').forEach((a) =>
   a.addEventListener('click', () => {
-    document
-      .querySelectorAll('.topbar nav a')
-      .forEach((x) => x.classList.toggle('active', x === a));
+    const parentNav = a.closest('nav');
+    if (parentNav) {
+      parentNav.querySelectorAll('a').forEach((x) => x.classList.toggle('active', x === a));
+    }
   }),
 );
+
+export function switchGame(game) {
+  const isHsr = game === 'hsr';
+  const genshinBtn = el('game-btn-genshin');
+  const hsrBtn = el('game-btn-hsr');
+  const genshinMain = el('showcase-main');
+  const hsrMain = el('hsr-showcase-main');
+  const genshinNav = el('topbar-nav-genshin');
+  const hsrNav = el('topbar-nav-hsr');
+  const brandTitle = el('brand-title');
+  const brandSub = el('brand-sub');
+
+  if (genshinBtn) {
+    genshinBtn.classList.toggle('active', !isHsr);
+    genshinBtn.setAttribute('aria-selected', !isHsr ? 'true' : 'false');
+  }
+  if (hsrBtn) {
+    hsrBtn.classList.toggle('active', isHsr);
+    hsrBtn.setAttribute('aria-selected', isHsr ? 'true' : 'false');
+  }
+
+  if (genshinMain) genshinMain.hidden = isHsr;
+  if (hsrMain) hsrMain.hidden = !isHsr;
+  if (genshinNav) genshinNav.hidden = isHsr;
+  if (hsrNav) hsrNav.hidden = !isHsr;
+
+  if (brandTitle && brandSub) {
+    if (isHsr) {
+      brandTitle.textContent = 'ASTRAL';
+      brandSub.textContent = 'EXPRESS';
+    } else {
+      brandTitle.textContent = 'TEYVAT';
+      brandSub.textContent = 'ARCHIVE';
+    }
+  }
+
+  try {
+    localStorage.setItem('hoyoshowcase.activeGame', game);
+  } catch {}
+
+  if (isHsr) {
+    initHsrShowcase();
+  }
+}
+
+const gameBtnGenshin = el('game-btn-genshin');
+const gameBtnHsr = el('game-btn-hsr');
+if (gameBtnGenshin) gameBtnGenshin.addEventListener('click', () => switchGame('genshin'));
+if (gameBtnHsr) gameBtnHsr.addEventListener('click', () => switchGame('hsr'));
+
+try {
+  const activeGame = localStorage.getItem('hoyoshowcase.activeGame');
+  if (activeGame === 'hsr') {
+    switchGame('hsr');
+  }
+} catch {}
 el('showcase-export').addEventListener('click', () => {
   if (!model) return notify('Kết nối HoYoLAB để lấy dữ liệu trước.');
   if (lastJob?.hasSnapshot && !el('collector-download').disabled) el('collector-download').click();

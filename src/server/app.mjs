@@ -22,16 +22,28 @@ const COLLECTION_READ_ROUTES = new Set([
 export function createApp({
   transportFactory = () => new Transport(),
   savedSnapshot = null,
+  savedHsrSnapshot = null,
   onSnapshot = null,
   onPersistenceError = () =>
     console.error('Không lưu được bản dữ liệu local. Bản trong RAM vẫn có thể xuất.'),
 } = {}) {
   let saved = savedSnapshot ? stripCredentials(savedSnapshot) : null;
+  let savedHsr = savedHsrSnapshot
+    ? stripCredentials(savedHsrSnapshot)
+    : saved?.schema === 'hsr-battle-chronicle-v1'
+      ? saved
+      : null;
+  let savedGenshin = saved?.schema === 'genshin-battle-chronicle-v1' ? saved : null;
   const gameMedia = createGameMedia();
   const sessions = createSessionStore(transportFactory);
 
   async function publishSnapshot(snapshot) {
     saved = stripCredentials(snapshot);
+    if (saved?.schema === 'hsr-battle-chronicle-v1') {
+      savedHsr = saved;
+    } else if (saved?.schema === 'genshin-battle-chronicle-v1') {
+      savedGenshin = saved;
+    }
     if (onSnapshot) await onSnapshot(saved);
   }
 
@@ -65,10 +77,16 @@ export function createApp({
               : showcaseModel(saved, { saved: true });
           return send(res, 200, { view });
         }
-        if (url.pathname === '/api/showcase/saved/hsr')
-          return send(res, 200, { view: hsrShowcaseModel(saved, { saved: true }) });
-        if (url.pathname === '/api/showcase/saved/genshin')
-          return send(res, 200, { view: showcaseModel(saved, { saved: true }) });
+        if (url.pathname === '/api/showcase/saved/hsr') {
+          const hsrTarget =
+            savedHsr || (saved?.schema === 'hsr-battle-chronicle-v1' ? saved : null);
+          return send(res, 200, { view: hsrShowcaseModel(hsrTarget, { saved: true }) });
+        }
+        if (url.pathname === '/api/showcase/saved/genshin') {
+          const genshinTarget =
+            savedGenshin || (saved?.schema === 'genshin-battle-chronicle-v1' ? saved : null);
+          return send(res, 200, { view: showcaseModel(genshinTarget, { saved: true }) });
+        }
         if (url.pathname === '/api/showcase/archive') {
           if (!saved) throw new HttpError(404, 'Chưa có bản dữ liệu đã lưu.');
           return send(res, 200, saved, 'application/json; charset=utf-8', {

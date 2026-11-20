@@ -8,6 +8,8 @@ import {
   startHsrCollection,
   hsrCollectionStatus,
 } from '../src/server/collection/hsr-collector.mjs';
+import { makeFixture } from './fixtures/collector.mjs';
+import { startCollection, exportCollection } from '../src/server/collection/collector.mjs';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -173,4 +175,40 @@ test('gameImageUrl accepts HSR game record image URLs', () => {
     'https://act-webstatic.hoyoverse.com/game_record/hkrpg/avatar/icon.png?x-resource-process=image/auto-orient';
   const encodedRecord = Buffer.from(hsrRecordUrl).toString('base64url');
   assert.equal(gameImageUrl(encodedRecord), hsrRecordUrl);
+});
+
+test('createApp serves saved HSR and Genshin views independently', async () => {
+  const { createApp } = await import('../src/server/app.mjs');
+  const f = makeFixture({ characters: 1 });
+  startCollection(f.ctx);
+  await f.ctx.collection.done;
+  const genshinSnapshot = exportCollection(f.ctx);
+
+  const hsrSnapshot = {
+    schema: 'hsr-battle-chronicle-v1',
+    role: { uid: '810000001', server: 'prod_official_asia', nickname: 'Stelle' },
+    sections: { overview: { data: { stats: { active_days: 200 } } } },
+  };
+
+  const app = createApp({
+    savedSnapshot: genshinSnapshot,
+    savedHsrSnapshot: hsrSnapshot,
+  });
+
+  await new Promise((resolve) => app.listen(0, '127.0.0.1', resolve));
+  const port = app.address().port;
+
+  try {
+    const hsrRes = await fetch(`http://127.0.0.1:${port}/api/showcase/saved/hsr`);
+    const hsrJson = await hsrRes.json();
+    assert.equal(hsrJson.view?.game, 'hsr');
+    assert.equal(hsrJson.view?.profile?.uid, '810000001');
+
+    const genshinRes = await fetch(`http://127.0.0.1:${port}/api/showcase/saved/genshin`);
+    const genshinJson = await genshinRes.json();
+    assert.equal(genshinJson.view?.game, 'genshin');
+    assert.equal(genshinJson.view?.role?.uid, '800000001');
+  } finally {
+    await new Promise((resolve) => app.close(resolve));
+  }
 });

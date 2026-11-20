@@ -40,6 +40,7 @@ export function showcaseModel(snapshot, { saved = false } = {}) {
     hasDetail: !!c.detail,
   }));
   return stripCredentials({
+    game: 'genshin',
     id: snapshot.id,
     state: snapshot.state,
     saved,
