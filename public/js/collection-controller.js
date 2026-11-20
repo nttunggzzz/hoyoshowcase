@@ -148,11 +148,24 @@ function authView(j) {
   return need;
 }
 async function api(path, input = {}, deferStatus = false) {
-  const r = await fetch(`/api/${path}`, {
+  let r = await fetch(`/api/${path}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-poc-csrf': csrf },
     body: JSON.stringify(input),
   });
+  if (r.status === 401) {
+    try {
+      const sRes = await fetch('/api/session');
+      const sJson = await sRes.json();
+      csrf = sJson.csrf;
+      if (sJson.status && !deferStatus) setSession(sJson.status);
+      r = await fetch(`/api/${path}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-poc-csrf': csrf },
+        body: JSON.stringify(input),
+      });
+    } catch {}
+  }
   let j;
   try {
     j = await r.json();
@@ -189,17 +202,20 @@ async function afterAuth(j) {
   try {
     const res = await api('roles', { route: 'labRoles' });
     if (res.roles && res.roles.length) rolesFound = true;
-  } catch {
-    if (sessionState.hasCookieTokenV2) {
-      try {
-        await api('roles', { route: 'roles' });
-        rolesFound = true;
-      } catch {}
-    }
-  }
-  if (!rolesFound && sessionState.hasCookieTokenV2) {
+  } catch {}
+
+  if (sessionState.hasCookieTokenV2) {
     try {
-      await api('roles', { route: 'roles' });
+      await api('roles', { route: 'roles', gameBiz: 'hk4e_global' });
+    } catch {}
+    try {
+      await api('roles', { route: 'roles', gameBiz: 'hkrpg_global' });
+    } catch {}
+    if (sessionState.roles && sessionState.roles.length) rolesFound = true;
+  }
+  if (!rolesFound && !sessionState.hasCookieTokenV2 && !sessionState.hasLtoken) {
+    try {
+      await api('roles', { route: 'roles', gameBiz: 'hk4e_global' });
     } catch {}
   }
   if (sessionState.roles.length === 1) {
@@ -449,7 +465,13 @@ async function clearSession() {
   $('collector-preview').hidden = true;
   authView({});
   renderCollection({ state: 'idle', modules: [], summary: null });
-  message('Đã xóa dữ liệu và credential khỏi phiên RAM local.');
+  try {
+    const sRes = await fetch('/api/session');
+    const sData = await sRes.json();
+    csrf = sData.csrf;
+    if (sData.status) setSession(sData.status);
+  } catch {}
+  message('Đã đăng xuất tài khoản cũ. Bạn có thể đăng nhập tài khoản khác ngay bây giờ.');
 }
 $('collector-clear').addEventListener('click', () => action(clearSession));
 $('collector-change-account').addEventListener('click', () => action(clearSession));

@@ -407,12 +407,13 @@ export function importCookies(c, raw) {
     hasCookieTokenV2: !!cookies.cookie_token_v2,
   };
 }
-export async function getRoles(c, route = 'roles', gameBiz = null) {
+export async function getRoles(c, route = 'roles', gameBiz = 'hk4e_global') {
   demand(['roles', 'labRoles'].includes(route), 'Đường game role không hợp lệ.');
+  const targetBiz = route === 'roles' ? gameBiz || 'hk4e_global' : undefined;
   const d = await c.transport.data(route, {
     headers:
       route === 'roles' ? { Cookie: cookieHeader(c.cookies, ACCOUNT_KEYS) } : labHeaders(c.cookies),
-    params: route === 'roles' && gameBiz ? { game_biz: gameBiz } : undefined,
+    params: targetBiz ? { game_biz: targetBiz } : undefined,
     retryRead: true,
   });
   demand(Array.isArray(d.list), 'API game role thiếu list.');
@@ -427,26 +428,38 @@ export async function getRoles(c, route = 'roles', gameBiz = null) {
     'prod_official_eur',
     'prod_official_cht',
   ];
-  c.roles = d.list
+  const mapped = d.list
     .filter(
       (x) =>
         (!x.game_biz || x.game_biz === 'hk4e_global' || x.game_biz === 'hkrpg_global') &&
         allowedRegions.includes(x.region),
     )
-    .map((x) => ({
-      uid: String(x.game_uid),
-      server: x.region,
-      nickname: String(x.nickname ?? ''),
-      level: x.level,
-      gameBiz: x.game_biz || 'hk4e_global',
-      game: (x.game_biz || '').startsWith('hkrpg') ? 'hsr' : 'genshin',
-    }));
-  for (const r of c.roles)
+    .map((x) => {
+      const biz = x.game_biz || targetBiz || 'hk4e_global';
+      return {
+        uid: String(x.game_uid),
+        server: x.region,
+        nickname: String(x.nickname ?? ''),
+        level: x.level,
+        gameBiz: biz,
+        game: biz.startsWith('hkrpg') ? 'hsr' : 'genshin',
+      };
+    });
+  for (const r of mapped)
     demand(
       uidServer(r.uid, r.gameBiz) === r.server ||
         (r.server === 'prod_official_eur' && uidServer(r.uid, r.gameBiz) === 'prod_official_euro'),
       'UID/server do API trả không khớp bảng nhận diện.',
     );
+
+  const existing = Array.isArray(c.roles) ? c.roles : [];
+  const merged = [...existing];
+  for (const r of mapped) {
+    if (!merged.some((m) => m.uid === r.uid && m.server === r.server)) {
+      merged.push(r);
+    }
+  }
+  c.roles = merged;
   return { ok: true, stage: route, roles: c.roles };
 }
 export function selectRole(c, uid, server) {
