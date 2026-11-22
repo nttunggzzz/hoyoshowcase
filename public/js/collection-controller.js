@@ -148,24 +148,11 @@ function authView(j) {
   return need;
 }
 async function api(path, input = {}, deferStatus = false) {
-  let r = await fetch(`/api/${path}`, {
+  const r = await fetch(`/api/${path}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-poc-csrf': csrf },
     body: JSON.stringify(input),
   });
-  if (r.status === 401) {
-    try {
-      const sRes = await fetch('/api/session');
-      const sJson = await sRes.json();
-      csrf = sJson.csrf;
-      if (sJson.status && !deferStatus) setSession(sJson.status);
-      r = await fetch(`/api/${path}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-poc-csrf': csrf },
-        body: JSON.stringify(input),
-      });
-    } catch {}
-  }
   let j;
   try {
     j = await r.json();
@@ -186,12 +173,7 @@ async function action(fn) {
   try {
     await fn();
   } catch (e) {
-    const msg = e.message || 'Chưa hoàn thành yêu cầu.';
-    message(msg);
-    if (msg.includes('-3208')) {
-      const details = $('collector-cookies-details');
-      if (details) details.open = true;
-    }
+    message(e.message || 'Chưa hoàn thành yêu cầu.');
   } finally {
     busy = false;
     controls();
@@ -202,25 +184,16 @@ async function afterAuth(j) {
   if (j.stage?.endsWith('_login') && j.stage !== 'hoyolab_web_login') {
     message('Đăng nhập thành công. Đang chuẩn bị cookie và tìm game role…');
     await api('exchange');
-  } else message('Đang tìm tài khoản Genshin và Honkai: Star Rail…');
-  let rolesFound = false;
+  } else message('Đang dùng cookie web để tìm tài khoản Genshin…');
   try {
-    const res = await api('roles', { route: 'labRoles' });
-    if (res.roles && res.roles.length) rolesFound = true;
-  } catch {}
-
+    await api('roles', { route: sessionState.hasCookieTokenV2 ? 'roles' : 'labRoles' });
+  } catch (e) {
+    if (!sessionState.hasLtoken) throw e;
+    await api('roles', { route: 'labRoles' });
+  }
   if (sessionState.hasCookieTokenV2) {
     try {
-      await api('roles', { route: 'roles', gameBiz: 'hk4e_global' });
-    } catch {}
-    try {
       await api('roles', { route: 'roles', gameBiz: 'hkrpg_global' });
-    } catch {}
-    if (sessionState.roles && sessionState.roles.length) rolesFound = true;
-  }
-  if (!rolesFound && !sessionState.hasCookieTokenV2 && !sessionState.hasLtoken) {
-    try {
-      await api('roles', { route: 'roles', gameBiz: 'hk4e_global' });
     } catch {}
   }
   if (sessionState.roles.length === 1) {
@@ -231,7 +204,7 @@ async function afterAuth(j) {
     message(
       sessionState.roles.length
         ? 'Chọn UID/server muốn lấy dữ liệu (Genshin hoặc Star Rail) rồi bấm “Lấy toàn bộ dữ liệu”.'
-        : 'Tài khoản này chưa trả game role Genshin hoặc Honkai: Star Rail.',
+        : 'Tài khoản này chưa trả game role Genshin Global.',
     );
 }
 async function begin() {
@@ -470,13 +443,7 @@ async function clearSession() {
   $('collector-preview').hidden = true;
   authView({});
   renderCollection({ state: 'idle', modules: [], summary: null });
-  try {
-    const sRes = await fetch('/api/session');
-    const sData = await sRes.json();
-    csrf = sData.csrf;
-    if (sData.status) setSession(sData.status);
-  } catch {}
-  message('Đã đăng xuất tài khoản cũ. Bạn có thể đăng nhập tài khoản khác ngay bây giờ.');
+  message('Đã xóa dữ liệu và credential khỏi phiên RAM local.');
 }
 $('collector-clear').addEventListener('click', () => action(clearSession));
 $('collector-change-account').addEventListener('click', () => action(clearSession));
@@ -489,10 +456,7 @@ window.addEventListener('message', (e) => {
   if (e.data?.kind === 'captcha-ready' && challenge)
     e.source.postMessage({ kind: 'challenge', challenge }, '*');
   if (e.data?.kind === 'captcha-result')
-    action(async () => {
-      message('Đang xác minh mã CAPTCHA với HoYoLAB…');
-      await afterAuth(await api('captcha', { validation: e.data.validation }));
-    });
+    action(async () => afterAuth(await api('captcha', { validation: e.data.validation })));
 });
 fetch('/api/session')
   .then((r) => r.json())

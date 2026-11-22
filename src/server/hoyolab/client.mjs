@@ -1,7 +1,11 @@
 import { demand, uidServer } from './validation.mjs';
 import { WEB_COOKIE_KEYS, LAB_KEYS, ACCOUNT_KEYS, parseCookies, cookieHeader } from './cookies.mjs';
 import { ApiError, Transport } from './transport.mjs';
-export { URLS } from './endpoints.mjs';
+import { URLS as BASE_URLS } from './endpoints.mjs';
+export const URLS = Object.freeze({
+  ...BASE_URLS,
+  redeem: 'https://sg-hk4e-api.hoyoverse.com/common/apicdkey/api/webExchangeCdkey',
+});
 export { demand, uidServer } from './validation.mjs';
 export { parseCookies, readWebCookies } from './cookies.mjs';
 export { ApiError, Transport, retrySeconds } from './transport.mjs';
@@ -336,12 +340,7 @@ export async function submitCaptcha(c, v) {
     return sendOtp(c);
   }
   f.proof['x-rpc-aigis'] = aigis;
-  try {
-    return await login(c);
-  } catch (err) {
-    if (f?.proof) delete f.proof['x-rpc-aigis'];
-    throw err;
-  }
+  return login(c);
 }
 export async function refreshCaptcha(c) {
   const f = c.flow;
@@ -414,11 +413,10 @@ export function importCookies(c, raw) {
 }
 export async function getRoles(c, route = 'roles', gameBiz = 'hk4e_global') {
   demand(['roles', 'labRoles'].includes(route), 'Đường game role không hợp lệ.');
-  const targetBiz = route === 'roles' ? gameBiz || 'hk4e_global' : undefined;
   const d = await c.transport.data(route, {
     headers:
       route === 'roles' ? { Cookie: cookieHeader(c.cookies, ACCOUNT_KEYS) } : labHeaders(c.cookies),
-    params: targetBiz ? { game_biz: targetBiz } : undefined,
+    params: route === 'roles' ? { game_biz: gameBiz || 'hk4e_global' } : undefined,
     retryRead: true,
   });
   demand(Array.isArray(d.list), 'API game role thiếu list.');
@@ -440,7 +438,7 @@ export async function getRoles(c, route = 'roles', gameBiz = 'hk4e_global') {
         allowedRegions.includes(x.region),
     )
     .map((x) => {
-      const biz = x.game_biz || targetBiz || 'hk4e_global';
+      const biz = x.game_biz || (route === 'roles' ? gameBiz || 'hk4e_global' : 'hk4e_global');
       return {
         uid: String(x.game_uid),
         server: x.region,
@@ -843,6 +841,7 @@ export async function redeemCode(c, cdkey, targetUid, targetRegion) {
     lang: 'vi',
   };
 
+  c.transport.routes.redeem ??= 'https://sg-hk4e-api.hoyoverse.com/common/apicdkey/api/webExchangeCdkey';
   const headers = {
     Cookie: cookieHeader(c.cookies, LAB_KEYS),
     Origin: 'https://genshin.hoyoverse.com',

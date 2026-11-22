@@ -104,7 +104,8 @@ export async function dispatchApi(pathname, input, c, { publishSnapshot, onPersi
       break;
     }
     case '/api/collector/status': {
-      const isHsr = input?.game === 'hsr' || (c.hsrCollection && !c.collection);
+      const isHsr =
+        input?.game === 'hsr' || c.roles?.find((r) => r.uid === c.selected?.uid)?.game === 'hsr';
       result = {
         ok: true,
         collection: isHsr ? hsrCollector.hsrCollectionStatus(c) : collector.collectionStatus(c),

@@ -219,5 +219,5 @@ export function startHsrCollection(
   };
 
   job.promise = run();
-  return job;
+  return hsrCollectionStatus(c);
 }

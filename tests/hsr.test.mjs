@@ -276,3 +276,76 @@ test('createApp serves saved HSR and Genshin views independently', async () => {
     await new Promise((resolve) => app.close(resolve));
   }
 });
+
+test('startHsrCollection returns object with state, modules array, summary and no raw controller/promise', () => {
+  const f = makeFixture();
+  f.ctx.cookies = { ltoken_v2: 'SECRET', ltuid_v2: '42' };
+  f.ctx.roles = [
+    {
+      uid: '810000001',
+      server: 'prod_official_asia',
+      nickname: 'Trailblazer',
+      game: 'hsr',
+      gameBiz: 'hkrpg_global',
+    },
+  ];
+  f.ctx.selected = { uid: '810000001', server: 'prod_official_asia' };
+
+  const status = startHsrCollection(f.ctx);
+  assert.equal(status.state, 'running');
+  assert.ok(Array.isArray(status.modules));
+  assert.equal(status.modules.length, 4);
+  assert.ok(status.summary && typeof status.summary === 'object');
+  assert.equal(status.controller, undefined);
+  assert.equal(status.promise, undefined);
+  assert.equal(status.hasSnapshot, true);
+
+  f.ctx.hsrCollection?.controller?.abort();
+});
+
+test('selected role is HSR and old Genshin c.collection exists: /api/collector/status returns HSR status', async () => {
+  const { dispatchApi } = await import('../src/server/routes/api.mjs');
+  const f = makeFixture();
+  f.ctx.cookies = { ltoken_v2: 'SECRET', ltuid_v2: '42' };
+  f.ctx.roles = [
+    {
+      uid: '800000001',
+      server: 'os_asia',
+      nickname: 'Aether',
+      game: 'genshin',
+      gameBiz: 'hk4e_global',
+    },
+    {
+      uid: '810000001',
+      server: 'prod_official_asia',
+      nickname: 'Trailblazer',
+      game: 'hsr',
+      gameBiz: 'hkrpg_global',
+    },
+  ];
+
+  f.ctx.collection = {
+    snapshot: {
+      id: 'genshin-old-id',
+      state: 'complete',
+      startedAt: new Date().toISOString(),
+      role: { uid: '800000001', server: 'os_asia' },
+      sections: {},
+      summary: null,
+    },
+    requests: 10,
+    activeModule: null,
+  };
+
+  f.ctx.selected = { uid: '810000001', server: 'prod_official_asia' };
+
+  await dispatchApi('/api/collector/start', { game: 'hsr' }, f.ctx, {});
+
+  const statusRes = await dispatchApi('/api/collector/status', {}, f.ctx, {});
+  assert.equal(statusRes.ok, true);
+  assert.equal(statusRes.collection.role?.uid, '810000001');
+  assert.equal(statusRes.collection.role?.game, 'hsr');
+  assert.notEqual(statusRes.collection.id, 'genshin-old-id');
+
+  f.ctx.hsrCollection?.controller?.abort();
+});
