@@ -109,8 +109,15 @@ export function createApp({
           });
         }
         if (url.pathname.startsWith('/api/pity/')) {
-          const uid = url.pathname.slice('/api/pity/'.length);
-          const game = url.searchParams.get('game') || 'genshin';
+          const parts = url.pathname.slice('/api/pity/'.length).split('/').filter(Boolean);
+          let game = 'genshin';
+          let uid = '';
+          if (parts.length >= 2) {
+            game = parts[0];
+            uid = parts[1];
+          } else {
+            uid = parts[0] || '';
+          }
           const cookieName = `poc_sid_${server.address().port}`;
           const sid = (req.headers.cookie ?? '')
             .split(';')

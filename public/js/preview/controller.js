@@ -69,7 +69,7 @@ export function createPreviewManager({ game = 'genshin', prefix = '' } = {}) {
   async function fetchPityFromUid(uid) {
     if (!uid) return;
     try {
-      const res = await fetch(`/api/pity/${encodeURIComponent(uid)}?game=${encodeURIComponent(game)}`);
+      const res = await fetch(`/api/pity/${encodeURIComponent(game)}/${encodeURIComponent(uid)}`);
       if (!res.ok) return;
       const json = await res.json();
       if (json && json.found) {
