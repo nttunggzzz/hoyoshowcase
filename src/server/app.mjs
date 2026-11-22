@@ -3,7 +3,7 @@ import { Transport, ApiError, safeStatus } from './hoyolab/client.mjs';
 import { stripCredentials } from './collection/collector.mjs';
 import { showcaseModel } from './models/showcase.mjs';
 import { hsrShowcaseModel } from './models/hsr-showcase.mjs';
-import { getPityDataForUid } from './pity.mjs';
+import { getPityDataForUid, getPityData } from './pity.mjs';
 import { createGameMedia } from './media/game-media.mjs';
 import { createSessionStore } from './session-store.mjs';
 import { HttpError, SESSION_TTL_MS, sameSecret, send, readJsonBody } from './http.mjs';
@@ -110,7 +110,15 @@ export function createApp({
         }
         if (url.pathname.startsWith('/api/pity/')) {
           const uid = url.pathname.slice('/api/pity/'.length);
-          const result = await getPityDataForUid(uid);
+          const game = url.searchParams.get('game') || 'genshin';
+          const cookieName = `poc_sid_${server.address().port}`;
+          const sid = (req.headers.cookie ?? '')
+            .split(';')
+            .map((x) => x.trim())
+            .find((x) => x.startsWith(`${cookieName}=`))
+            ?.slice(cookieName.length + 1);
+          const sess = sessions.get(sid);
+          const result = await getPityData(sess?.c, uid, game);
           return send(res, 200, result);
         }
         if (await serveStatic(res, url.pathname)) return;

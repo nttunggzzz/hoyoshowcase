@@ -150,9 +150,15 @@ export function startHsrCollection(
     stopReason: null,
     sections: Object.fromEntries(HSR_CAPABILITIES.map((cap) => [cap.id, entry(cap)])),
     summary: {
+      characters: 0,
+      equippedWeapons: 0,
+      equippedArtifacts: 0,
       modulesQueued: HSR_CAPABILITIES.length,
       modulesDone: 0,
       modulesFailed: 0,
+      modulesSucceeded: 0,
+      modulesApplicable: HSR_CAPABILITIES.length,
+      modulesTotal: HSR_CAPABILITIES.length,
     },
   };
 
@@ -194,6 +200,21 @@ export function startHsrCollection(
         target.state = 'done';
         target.requestCount++;
         snapshot.summary.modulesDone++;
+        snapshot.summary.modulesSucceeded = snapshot.summary.modulesDone;
+        if (spec.id === 'characters' && data) {
+          const avatars = Array.isArray(data.avatar_list) ? data.avatar_list : [];
+          snapshot.summary.characters = avatars.length;
+          snapshot.summary.equippedWeapons = avatars.filter(
+            (a) => a.equip && (a.equip.id || a.equip.name),
+          ).length;
+          snapshot.summary.equippedArtifacts = avatars.reduce(
+            (sum, a) =>
+              sum +
+              (Array.isArray(a.relics) ? a.relics.length : 0) +
+              (Array.isArray(a.ornaments) ? a.ornaments.length : 0),
+            0,
+          );
+        }
       } catch (err) {
         if (job.stop === 'cancelled' || controller.signal.aborted) {
           target.state = 'cancelled';
@@ -210,6 +231,10 @@ export function startHsrCollection(
         }
       }
     }
+
+    snapshot.summary.modulesSucceeded = snapshot.summary.modulesDone;
+    snapshot.summary.modulesApplicable = HSR_CAPABILITIES.length;
+    snapshot.summary.modulesTotal = HSR_CAPABILITIES.length;
 
     snapshot.state = job.stop ? (job.stop === 'cancelled' ? 'cancelled' : 'failed') : 'complete';
     snapshot.stopReason = job.stop;

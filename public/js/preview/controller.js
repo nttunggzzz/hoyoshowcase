@@ -69,7 +69,7 @@ export function createPreviewManager({ game = 'genshin', prefix = '' } = {}) {
   async function fetchPityFromUid(uid) {
     if (!uid) return;
     try {
-      const res = await fetch(`/api/pity/${uid}`);
+      const res = await fetch(`/api/pity/${encodeURIComponent(uid)}?game=${encodeURIComponent(game)}`);
       if (!res.ok) return;
       const json = await res.json();
       if (json && json.found) {
@@ -79,7 +79,8 @@ export function createPreviewManager({ game = 'genshin', prefix = '' } = {}) {
         if (json.rollsLeft != null) config.rollsLeft = json.rollsLeft;
         if (json.monthCard != null) config.monthCard = json.monthCard;
         config = normalizeConfig(config, data);
-        updatePityDisplay(`Tự động từ ${json.source} (${json.totalWishes} lượt roll)`);
+        const srcLabel = json.source === 'api' ? 'API HoYoLAB' : json.source;
+        updatePityDisplay(`Tự động từ ${srcLabel} (${json.totalWishes} lượt roll)`);
         schedule();
       } else if (json && json.message) {
         const sourceText = $('pity-source-text');
@@ -449,7 +450,7 @@ export function createPreviewManager({ game = 'genshin', prefix = '' } = {}) {
       config = normalizeConfig(saved ?? {}, next);
     } else config = normalizeConfig(config, next);
     setup();
-    if (next?.role?.uid && game === 'genshin') fetchPityFromUid(next.role.uid);
+    if (next?.role?.uid) fetchPityFromUid(next.role.uid);
     if (visible) schedule();
   }
 

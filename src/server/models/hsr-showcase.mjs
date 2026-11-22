@@ -108,41 +108,72 @@ export function hsrShowcaseModel(snapshot, { saved = false } = {}) {
       { property_type: 25, final: elemDmg },
     ];
 
-    const constellations = [1, 2, 3, 4, 5, 6].map((i) => ({
-      id: i,
-      name: `Tinh Hồn Tầng ${i}`,
-      icon: charIcon,
-      is_actived: Number(a.rank ?? 0) >= i,
-      pos: i,
-      effect: `Mở khóa hiệu ứng Tinh Hồn Tầng ${i} gia tăng năng lực chiến đấu.`,
-    }));
+    const charImage = a.figure_path || charIcon;
 
-    const skills = [
-      {
-        name: 'Tấn Công Thường',
-        level: Math.min(6, Math.max(1, Math.floor(Number(a.level || 80) / 15))),
-        icon: charIcon,
-        desc: 'Gây sát thương thuộc tính đơn mục tiêu.',
-      },
-      {
-        name: 'Chiến Kỹ',
-        level: Math.min(10, Math.max(1, Math.floor(Number(a.level || 80) / 8))),
-        icon: charIcon,
-        desc: 'Kích hoạt kỹ năng đặc trưng diện rộng.',
-      },
-      {
-        name: 'Tuyệt Kỹ',
-        level: Math.min(10, Math.max(1, Math.floor(Number(a.level || 80) / 8))),
-        icon: charIcon,
-        desc: 'Bộc phát sức mạnh tối thượng diệt trừ kẻ địch.',
-      },
-      {
-        name: 'Thiên Phú',
-        level: Math.min(10, Math.max(1, Math.floor(Number(a.level || 80) / 8))),
-        icon: charIcon,
-        desc: 'Hiệu ứng bị động cường hóa toàn đội.',
-      },
-    ];
+    const constellations = [1, 2, 3, 4, 5, 6].map((i) => {
+      const foundRank = Array.isArray(a.ranks)
+        ? a.ranks.find((r) => r.pos === i) || a.ranks[i - 1]
+        : null;
+      const rankIcon = foundRank?.icon || charIcon;
+      const rankName = foundRank?.name || `Tinh Hồn Tầng ${i}`;
+      const rankEffect =
+        foundRank?.desc || `Mở khóa hiệu ứng Tinh Hồn Tầng ${i} gia tăng năng lực chiến đấu.`;
+      const isActived =
+        foundRank?.is_unlocked !== undefined
+          ? Boolean(foundRank.is_unlocked)
+          : Number(a.rank ?? 0) >= i;
+
+      return {
+        id: i,
+        name: rankName,
+        icon: rankIcon,
+        is_actived: isActived,
+        pos: i,
+        effect: rankEffect,
+      };
+    });
+
+    const skills =
+      Array.isArray(a.skills) && a.skills.length > 0
+        ? a.skills.map((s, idx) => {
+            const stage = Array.isArray(s.skill_stages) ? s.skill_stages[0] : null;
+            const skillIcon = s.item_url || stage?.item_url || s.icon || charIcon;
+            const skillName = stage?.name || s.name || s.remake || `Kỹ năng ${idx + 1}`;
+            const skillLevel = Number(s.level ?? stage?.level ?? 1);
+            const skillDesc = stage?.desc || s.desc || '';
+            return {
+              name: skillName,
+              level: skillLevel,
+              icon: skillIcon,
+              desc: skillDesc,
+            };
+          })
+        : [
+            {
+              name: 'Tấn Công Thường',
+              level: Math.min(6, Math.max(1, Math.floor(Number(a.level || 80) / 15))),
+              icon: charIcon,
+              desc: 'Gây sát thương thuộc tính đơn mục tiêu.',
+            },
+            {
+              name: 'Chiến Kỹ',
+              level: Math.min(10, Math.max(1, Math.floor(Number(a.level || 80) / 8))),
+              icon: charIcon,
+              desc: 'Kích hoạt kỹ năng đặc trưng diện rộng.',
+            },
+            {
+              name: 'Tuyệt Kỹ',
+              level: Math.min(10, Math.max(1, Math.floor(Number(a.level || 80) / 8))),
+              icon: charIcon,
+              desc: 'Bộc phát sức mạnh tối thượng diệt trừ kẻ địch.',
+            },
+            {
+              name: 'Thiên Phú',
+              level: Math.min(10, Math.max(1, Math.floor(Number(a.level || 80) / 8))),
+              icon: charIcon,
+              desc: 'Hiệu ứng bị động cường hóa toàn đội.',
+            },
+          ];
 
     return {
       id: a.id,
@@ -154,7 +185,7 @@ export function hsrShowcaseModel(snapshot, { saved = false } = {}) {
       element: a.element ?? a.damage_type,
       path: a.path ?? a.avatar_type,
       icon: charIcon,
-      image: charIcon,
+      image: charImage,
       equip,
       weapon,
       relics: [...relics, ...ornaments],
@@ -169,7 +200,9 @@ export function hsrShowcaseModel(snapshot, { saved = false } = {}) {
   const roleObj = {
     uid: String(role.uid ?? ''),
     server: String(role.server ?? ''),
-    nickname: String(role.nickname ?? 'Nhà Khai Phá'),
+    nickname: String(
+      role.nickname || snapshot.sections?.rogue?.data?.role?.nickname || 'Nhà Khai Phá',
+    ),
     level: Number(role.level ?? stats.level ?? 70),
   };
 

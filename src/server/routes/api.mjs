@@ -3,7 +3,7 @@ import * as collector from '../collection/collector.mjs';
 import * as hsrCollector from '../collection/hsr-collector.mjs';
 import { showcaseModel } from '../models/showcase.mjs';
 import { hsrShowcaseModel } from '../models/hsr-showcase.mjs';
-import { getPityDataForUid } from '../pity.mjs';
+import { getPityDataForUid, getPityData } from '../pity.mjs';
 import { HttpError } from '../http.mjs';
 
 /** Session-scoped operations. HTTP validation belongs to app.mjs. */
@@ -160,7 +160,7 @@ export async function dispatchApi(pathname, input, c, { publishSnapshot, onPersi
       result = { format: 'genshin-insights-evidence-v1', events: c.transport.audit };
       break;
     case '/api/pity':
-      result = await getPityDataForUid(String(input.uid || ''));
+      result = await getPityData(c, String(input.uid || ''), String(input.game || 'genshin'));
       break;
     case '/api/redeem-code':
       result = await core.redeemCode(
