@@ -190,8 +190,10 @@ export async function fetchLivePity(c, uid, game = 'genshin') {
       }
     } else {
       // Genshin
-      if (!c.authkey) {
+      c.selected = role;
+      if (!c.authkey || c.authkeyUid !== role.uid) {
         await fetchAuthkey(c);
+        c.authkeyUid = role.uid;
       }
       if (!c.authkey) throw new Error('Genshin authkey creation failed');
 
