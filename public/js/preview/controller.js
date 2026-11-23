@@ -25,6 +25,23 @@ export function createPreviewManager({ game = 'genshin', prefix = '' } = {}) {
     timer = null,
     ready = false,
     hits = [];
+
+  // Dọn dẹp giá trị mock cũ (154 roll, 28 ngày) trong localStorage nếu có
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && (k.startsWith('genshin.preview.') || k.startsWith('hsr.preview.'))) {
+        try {
+          const item = JSON.parse(localStorage.getItem(k));
+          if (item && (item.rollsLeft === 154 || item.monthCard === 28)) {
+            if (item.rollsLeft === 154) item.rollsLeft = 0;
+            if (item.monthCard === 28) item.monthCard = 0;
+            localStorage.setItem(k, JSON.stringify(item));
+          }
+        } catch {}
+      }
+    }
+  } catch {}
   const settings = createPreviewSettings({
     controls,
     getData: () => data,
@@ -446,6 +463,8 @@ export function createPreviewManager({ game = 'genshin', prefix = '' } = {}) {
         );
         if (saved && (saved.charCols === 8 || !saved.charCols)) saved.charCols = 7;
         if (saved && (saved.weaponCols === 12 || !saved.weaponCols)) saved.weaponCols = 14;
+        if (saved && (saved.rollsLeft === 154 || saved.rollsLeft == null)) saved.rollsLeft = 0;
+        if (saved && (saved.monthCard === 28 || saved.monthCard == null)) saved.monthCard = 0;
       } catch {}
       config = normalizeConfig(saved ?? {}, next);
     } else config = normalizeConfig(config, next);

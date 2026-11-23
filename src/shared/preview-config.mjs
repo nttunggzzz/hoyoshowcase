@@ -298,6 +298,10 @@ export function normalizeConfig(raw = {}, model) {
         c[key] = 7;
       } else if (raw._v !== 4 && key === 'weaponCols' && n === 12) {
         c[key] = 14;
+      } else if (key === 'rollsLeft' && n === 154) {
+        c[key] = 0;
+      } else if (key === 'monthCard' && n === 28) {
+        c[key] = 0;
       } else {
         c[key] = Math.max(min, Math.min(max, Math.floor(n)));
       }
